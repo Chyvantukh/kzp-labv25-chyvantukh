@@ -150,12 +150,6 @@ public class Main {
         return !hasMissingField;
     }
 
-    private static void printProduct(Product product) {
-        System.out.printf(Locale.ROOT,
-                "Назва = %-15s | Тип = %-10s | Вага = %4dг | Собiвартiсть = %6.2f | Цiна = %6.2f%n",
-                product.name(), product.type(), product.weightG(), product.cost(), product.price());
-    }
-
     private static double calculateTotalWeight(List<Product> products) {
         double total = 0;
         for (Product product : products) {
