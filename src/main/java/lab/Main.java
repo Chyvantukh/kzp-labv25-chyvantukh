@@ -107,12 +107,18 @@ public class Main {
 
             currentField = "Собiвартiсть";
             cost = Double.parseDouble(fields[3].trim().replace(',', '.'));
+            if (!Double.isFinite(cost)) {
+                throw new NumberFormatException();
+            }
             if (cost < 0) {
                 throw new IllegalArgumentException();
             }
 
             currentField = "Цiна";
             price = Double.parseDouble(fields[4].trim().replace(',', '.'));
+            if (!Double.isFinite(price)) {
+                throw new NumberFormatException();
+            }
             if (price < 0) {
                 throw new IllegalArgumentException();
             }
