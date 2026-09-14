@@ -18,6 +18,7 @@ public class Main {
         
         List<Product> validProducts = new ArrayList<>();
         List<String> errorLogs = new ArrayList<>();
+        StringBuilder sb = new StringBuilder();
         int lineNumber = 0;
 
         try (BufferedReader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
@@ -37,32 +38,47 @@ public class Main {
             return;
         }
 
-        System.out.println("=== УСПiШНО ЗАВАНТАЖЕНi ТОВАРИ (" + validProducts.size() + ") ===");
+        sb.append(String.format(Locale.ROOT, "=== УСПiШНО ЗАВАНТАЖЕНi ТОВАРИ (%d) ===%n",
+                validProducts.size()));
         if (validProducts.isEmpty()) {
-            System.out.println("Не знайдено жодного коректного товару.");
+            sb.append("Не знайдено жодного коректного товару.")
+                .append(System.lineSeparator());
         } else {
             for (Product product : validProducts) {
-                printProduct(product);
+                sb.append(String.format(Locale.ROOT,
+                        "Назва = %-15s | Тип = %-10s | Вага = %4dг | Собiвартiсть = %6.2f | Цiна = %6.2f%n",
+                        product.name(), product.type(), product.weightG(), product.cost(), product.price()));
             }
         }
 
-        System.out.println();
+        sb.append(System.lineSeparator());
 
-        System.out.println("=== ПОМИЛКОВi ТОВАРИ (" + errorLogs.size() + ") ===");
+        sb.append(String.format(Locale.ROOT, "=== ПОМИЛКОВi ТОВАРИ (%d) ===%n", errorLogs.size()));
         if (errorLogs.isEmpty()) {
-            System.out.println("Помилок пiд час обробки не виявлено.");
+            sb.append("Помилок пiд час обробки не виявлено.")
+                    .append(System.lineSeparator());
         } else {
             for (String error : errorLogs) {
-                System.out.println(error);
+                sb.append(error).append(System.lineSeparator());
             }
         }
 
-        System.out.println();
+        sb.append(System.lineSeparator());
 
-        System.out.println("=== БiЗНЕС-МЕТРИКИ ===");
-        System.out.printf(Locale.ROOT, "Загальна вага: %.0f г%n", calculateTotalWeight(validProducts));
-        System.out.printf(Locale.ROOT, "Середнiй маржинальний прибуток: %.2f грн%n", calculateAverageMargin(validProducts));
-        System.out.println("Найдорожчий товар: " + findMostExpensiveProduct(validProducts));
+        sb.append("=== Предметний обрахунок ===").append(System.lineSeparator());
+        sb.append(String.format(Locale.ROOT, "Загальна вага: %.0f г%n", calculateTotalWeight(validProducts)));
+        sb.append(String.format(Locale.ROOT, "Середнiй маржинальний прибуток: %.2f грн%n", calculateAverageMargin(validProducts)));
+        sb.append("Найдорожчий товар: " + findMostExpensiveProduct(validProducts));
+
+        Path report = Path.of("data", "report.txt");
+        try {
+            Files.writeString(report, sb.toString(), StandardCharsets.UTF_8);
+        } catch (IOException ex) {
+            System.out.println(ex.getMessage());
+        }
+
+        String finalReport = sb.toString();
+        System.out.println(finalReport);
     }
 
     private static Product parseLine(String line, int lineNumber, List<String> errorLogs) {
