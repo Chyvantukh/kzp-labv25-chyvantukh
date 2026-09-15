@@ -8,6 +8,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -81,6 +83,40 @@ class MainTest {
         assertEquals(0.0, (double) readField(product, "price"), 1e-9);
     }
 
+    @ParameterizedTest
+    @MethodSource("extremeProductLines")
+    void parseLine_shouldAcceptExtremeFiniteValues(String line, int expectedWeight, double expectedCost,
+            double expectedPrice) throws Exception {
+        List<String> errors = new ArrayList<>();
+        Object product = invokeParseLine(line, 1, errors);
+
+        assertNotNull(product);
+        assertTrue(errors.isEmpty());
+        assertEquals(expectedWeight, readField(product, "weightG"));
+        assertEquals(expectedCost, (double) readField(product, "cost"));
+        assertEquals(expectedPrice, (double) readField(product, "price"));
+    }
+
+    @Test
+    void main_shouldReportMissingInputFile() throws Exception {
+        Path input = Path.of("data", "input.csv");
+        Path backup = Path.of("data", "input.csv.test-backup");
+        ByteArrayOutputStream errorOutput = new ByteArrayOutputStream();
+        PrintStream originalErr = System.err;
+
+        Files.move(input, backup);
+        try {
+            System.setErr(new PrintStream(errorOutput, true, StandardCharsets.UTF_8));
+            Main.main(new String[0]);
+        } finally {
+            System.setErr(originalErr);
+            Files.move(backup, input);
+        }
+
+        assertTrue(errorOutput.toString(StandardCharsets.UTF_8)
+                .contains("Файл не знайдено за шляхом:"));
+    }
+
     @Test
     void hasAllFields_shouldReportMissingAndExtraFields() throws Exception {
         Method method = Main.class.getDeclaredMethod("hasAllFields", String[].class, int.class, List.class);
@@ -107,6 +143,13 @@ class MainTest {
 
         assertEquals(600.0, invokeTotalWeight(products), 1e-9);
         assertEquals(50.0, invokeAverageMargin(products), 1e-9);
+    }
+
+    @Test
+    void calculateAverageMargin_shouldAllowNegativeMargins() throws Exception {
+        Object product = createProduct("Збитковий товар", "Тип", 100, 100.0, 40.0);
+
+        assertEquals(-60.0, invokeAverageMargin(List.of(product)), 1e-9);
     }
 
     @Test
@@ -148,6 +191,15 @@ class MainTest {
                 Arguments.of("Печиво,печиво,200,30,50.00", 200, 30.0, 50.0),
                 Arguments.of("Товар,Тип,10,5,7.50", 10, 5.0, 7.5),
                 Arguments.of("Товар , Тип , 125 , 30,50.00 ", 125, 30.0, 50.0)
+        );
+    }
+
+    private static Stream<Arguments> extremeProductLines() {
+        return Stream.of(
+                Arguments.of("Максимум,Тип,%d,%s,%s".formatted(
+                        Integer.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE),
+                        Integer.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE),
+                Arguments.of("Український товар,випiчка,1,0.01,0.02", 1, 0.01, 0.02)
         );
     }
 
