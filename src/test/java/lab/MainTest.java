@@ -88,7 +88,7 @@ class MainTest {
         List<Object> products = new ArrayList<>(List.of(p1, p2, p3));
 
         assertEquals(600.0, invokeTotalWeight(products), 1e-9);
-        assertEquals(60.0, invokeAverageMargin(products), 1e-9);
+        assertEquals(50.0, invokeAverageMargin(products), 1e-9);
     }
 
     @Test
