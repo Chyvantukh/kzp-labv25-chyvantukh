@@ -10,9 +10,25 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Консольна програма для обробки даних про товари, збережених у CSV-файлі.
+ *
+ * <p>Програма читає записи з {@code data/input.csv}, перевіряє їхню коректність,
+ * відкидає некоректні рядки, обчислює агреговані показники та створює звіт у
+ * стандартному виводі та у файлі {@code data/report.txt}.</p>
+ */
 public class Main {
     private static final String[] FIELD_NAMES = {"Назва", "Тип", "Вага", "Собiвартiсть", "Цiна"};
 
+    /**
+     * Запускає обробку даних про товари.
+     *
+     * <p>Метод зчитує CSV-файл, формує списки допустимих товарів та помилок,
+     * обчислює підсумкові показники для коректних записів і виводить результат
+     * у консоль і файл звіту.</p>
+     *
+     * @param args аргументи командного рядка; у поточній реалізації не використовуються
+     */
     public static void main(String[] args) {
         Path file = Path.of("data", "input.csv");
         
@@ -81,6 +97,14 @@ public class Main {
         System.out.println(finalReport);
     }
 
+    /**
+     * Розбирає один рядок CSV-файлу та перетворює його на об'єкт товару.
+     *
+     * @param line рядок даних для аналізу
+     * @param lineNumber номер рядка у файлі
+     * @param errorLogs список помилок, які треба зафіксувати при валідації
+     * @return об'єкт товару, якщо рядок коректний; інакше {@code null}
+     */
     private static Product parseLine(String line, int lineNumber, List<String> errorLogs) {
         if (line.trim().isEmpty()) {
             return null;
@@ -135,6 +159,14 @@ public class Main {
         return new Product(name, type, weightG, cost, price);
     }
 
+    /**
+     * Перевіряє, чи рядок має всі необхідні поля і чи не містить зайвих значень.
+     *
+     * @param fields масив полів, отриманий після поділу рядка за комами
+     * @param lineNumber номер рядка у файлі
+     * @param errorLogs список логів помилок
+     * @return {@code true}, якщо всі поля присутні й немає зайвих значень; інакше {@code false}
+     */
     private static boolean hasAllFields(String[] fields, int lineNumber, List<String> errorLogs) {
         boolean hasMissingField = false;
 
@@ -156,6 +188,12 @@ public class Main {
         return !hasMissingField;
     }
 
+    /**
+     * Підраховує загальну вагу всіх коректних товарів.
+     *
+     * @param products список товарів
+     * @return сумарна вага у грамах
+     */
     private static double calculateTotalWeight(List<Product> products) {
         double total = 0;
         for (Product product : products) {
@@ -164,6 +202,12 @@ public class Main {
         return total;
     }
 
+    /**
+     * Обчислює середній маржинальний прибуток для списку товарів.
+     *
+     * @param products список товарів
+     * @return середня різниця між ціною та собівартістю або {@code 0.0}, якщо список порожній
+     */
     private static double calculateAverageMargin(List<Product> products) {
         if (products.isEmpty()) {
             return 0.0;
@@ -177,6 +221,12 @@ public class Main {
         return totalMargin / products.size();
     }
 
+    /**
+     * Знаходить товар з найбільшою ціною серед коректних записів.
+     *
+     * @param products список товарів
+     * @return товар з максимальною ціною або {@code null}, якщо список порожній
+     */
     private static Product findMostExpensiveProduct(List<Product> products) {
         if (products.isEmpty()) {
             return null;
