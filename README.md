@@ -40,6 +40,14 @@ java -jar target/kzp-labv25-chyvantukh-1.0.0.jar
 java -jar target/kzp-labv25-chyvantukh-1.0.0.jar
 ```
 
+Щоб переглянути версію застосунку:
+
+```bash
+java -jar target/kzp-labv25-chyvantukh-1.0.0.jar --version
+```
+
+Команда виводить `1.0.0`.
+
 ## Приклад роботи
 
 Після запуску програма читає дані з `data/input.csv`, виводить:

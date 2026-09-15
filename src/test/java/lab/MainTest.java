@@ -2,9 +2,12 @@ package lab;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -15,6 +18,21 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 class MainTest {
+
+    @Test
+    void main_shouldPrintVersion() {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        try {
+            System.setOut(new PrintStream(output, true, StandardCharsets.UTF_8));
+            Main.main(new String[]{"--version"});
+        } finally {
+            System.setOut(originalOut);
+        }
+
+        assertEquals("%s%s".formatted("1.0.0", System.lineSeparator()),
+            output.toString(StandardCharsets.UTF_8));
+    }
 
     @ParameterizedTest
     @MethodSource("validProductLines")

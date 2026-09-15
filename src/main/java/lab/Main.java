@@ -18,6 +18,7 @@ import java.util.Locale;
  * стандартному виводі та у файлі {@code data/report.txt}.</p>
  */
 public class Main {
+    private static final String VERSION = "1.0.0";
     private static final String[] FIELD_NAMES = {"Назва", "Тип", "Вага", "Собiвартiсть", "Цiна"};
 
     /**
@@ -27,9 +28,14 @@ public class Main {
      * обчислює підсумкові показники для коректних записів і виводить результат
      * у консоль і файл звіту.</p>
      *
-     * @param args аргументи командного рядка; у поточній реалізації не використовуються
+     * @param args аргументи командного рядка; {@code --version} виводить версію програми
      */
     public static void main(String[] args) {
+        if (args.length == 1 && "--version".equals(args[0])) {
+            System.out.println(VERSION);
+            return;
+        }
+
         Path file = Path.of("data", "input.csv");
         
         List<Product> validProducts = new ArrayList<>();
