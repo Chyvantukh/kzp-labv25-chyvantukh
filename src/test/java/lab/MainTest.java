@@ -74,7 +74,7 @@ class MainTest {
     @Test
     void parseLine_shouldHandleZeroValues() throws Exception {
         List<String> errors = new ArrayList<>();
-        Object product = invokeParseLine("Товар,Тип,0,0,0", 3, errors);
+        Object product = invokeParseLine("Товар;Тип;0;0;0", 3, errors);
 
         assertNotNull(product);
         assertTrue(errors.isEmpty());
@@ -187,37 +187,37 @@ class MainTest {
 
     private static Stream<Arguments> validProductLines() {
         return Stream.of(
-                Arguments.of("Хлiб пшеничний,хлiб,500,22.00,38.00", 500, 22.0, 38.0),
-                Arguments.of("Печиво,печиво,200,30,50.00", 200, 30.0, 50.0),
-                Arguments.of("Товар,Тип,10,5,7.50", 10, 5.0, 7.5),
-                Arguments.of("Товар , Тип , 125 , 30,50.00 ", 125, 30.0, 50.0)
+                Arguments.of("Хлiб пшеничний;хлiб;500;22.00;38.00", 500, 22.0, 38.0),
+                Arguments.of("Печиво;печиво;200;30;50.00", 200, 30.0, 50.0),
+                Arguments.of("Товар;Тип;10;5;7.50", 10, 5.0, 7.5),
+                Arguments.of("Товар ; Тип ; 125 ; 30;50.00 ", 125, 30.0, 50.0)
         );
     }
 
     private static Stream<Arguments> extremeProductLines() {
         return Stream.of(
-                Arguments.of("Максимум,Тип,%d,%s,%s".formatted(
+                Arguments.of("Максимум;Тип;%d;%s;%s".formatted(
                         Integer.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE),
                         Integer.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE),
-                Arguments.of("Український товар,випiчка,1,0.01,0.02", 1, 0.01, 0.02)
+                Arguments.of("Український товар;випiчка;1;0.01;0.02", 1, 0.01, 0.02)
         );
     }
 
     private static Stream<Arguments> invalidProductLines() {
         return Stream.of(
-                Arguments.of("Товар,Тип,,10.0,20.0", "вiдсутнє поле"),
-                Arguments.of("Товар,Тип,100,10.0", "вiдсутнє поле"),
-                Arguments.of("Товар,Тип,100,10.0,20.0,99", "забагато полiв"),
-                Arguments.of("Товар,Тип,abc,10.0,20.0", "Вага"),
-                Arguments.of("Товар,Тип,100,abc,20.0", "Собiвартiсть"),
-                Arguments.of("Товар,Тип,100,10.0,abc", "Цiна"),
-                Arguments.of("Товар,Тип,-1,10.0,20.0", "Вага"),
-                Arguments.of("Товар,Тип,100,-1,20.0", "Собiвартiсть"),
-                Arguments.of("Товар,Тип,100,10.0,-1", "Цiна"),
-                Arguments.of("Товар,Тип,100,NaN,20.0", "нечислове значення"),
-                Arguments.of("Товар,Тип,100,Infinity,20.0", "нечислове значення"),
-                Arguments.of("Товар,Тип,100,10.0,NaN", "нечислове значення"),
-                Arguments.of("Товар,Тип,100,10.0,Infinity", "нечислове значення")
+                Arguments.of("Товар;Тип;;10.0;20.0", "вiдсутнє поле"),
+                Arguments.of("Товар;Тип;100;10.0", "вiдсутнє поле"),
+                Arguments.of("Товар;Тип;100;10.0;20.0;99", "забагато полiв"),
+                Arguments.of("Товар;Тип;abc;10.0;20.0", "Вага"),
+                Arguments.of("Товар;Тип;100;abc;20.0", "Собiвартiсть"),
+                Arguments.of("Товар;Тип;100;10.0;abc", "Цiна"),
+                Arguments.of("Товар;Тип;-1;10.0;20.0", "Вага"),
+                Arguments.of("Товар;Тип;100;-1;20.0", "Собiвартiсть"),
+                Arguments.of("Товар;Тип;100;10.0;-1", "Цiна"),
+                Arguments.of("Товар;Тип;100;NaN;20.0", "нечислове значення"),
+                Arguments.of("Товар;Тип;100;Infinity;20.0", "нечислове значення"),
+                Arguments.of("Товар;Тип;100;10.0;NaN", "нечислове значення"),
+                Arguments.of("Товар;Тип;100;10.0;Infinity", "нечислове значення")
         );
     }
 

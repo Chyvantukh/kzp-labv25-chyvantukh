@@ -37,7 +37,7 @@ public class Main {
         }
 
         Path file = Path.of("data", "input.csv");
-        
+
         List<Product> validProducts = new ArrayList<>();
         List<String> errorLogs = new ArrayList<>();
         StringBuilder sb = new StringBuilder();
@@ -116,7 +116,7 @@ public class Main {
             return null;
         }
 
-        String[] fields = line.split(",", -1);
+        String[] fields = line.split(";", -1);
         if (!hasAllFields(fields, lineNumber, errorLogs)) {
             return null;
         }
@@ -168,7 +168,7 @@ public class Main {
     /**
      * Перевіряє, чи рядок має всі необхідні поля і чи не містить зайвих значень.
      *
-     * @param fields масив полів, отриманий після поділу рядка за комами
+        * @param fields масив полів, отриманий після поділу рядка за крапкою з комою
      * @param lineNumber номер рядка у файлі
      * @param errorLogs список логів помилок
      * @return {@code true}, якщо всі поля присутні й немає зайвих значень; інакше {@code false}
@@ -245,7 +245,7 @@ public class Main {
             }
         }
         return maxProduct;
-    }   
+    }
 
     private record Product(String name, String type, int weightG, double cost, double price) {
         @Override
