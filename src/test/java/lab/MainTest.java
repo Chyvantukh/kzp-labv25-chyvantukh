@@ -36,6 +36,24 @@ class MainTest {
             output.toString(StandardCharsets.UTF_8));
     }
 
+    @Test
+    void main_shouldPrintHelp() {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        try {
+            System.setOut(new PrintStream(output, true, StandardCharsets.UTF_8));
+            Main.main(new String[]{"--help"});
+        } finally {
+            System.setOut(originalOut);
+        }
+
+        String help = output.toString(StandardCharsets.UTF_8);
+        assertTrue(help.contains("--help"));
+        assertTrue(help.contains("--version"));
+        assertTrue(help.contains("Приклад запуску:"));
+        assertTrue(help.contains("data/input.csv"));
+    }
+
     @ParameterizedTest
     @MethodSource("validProductLines")
     void parseLine_shouldAcceptValidProducts(String line, int expectedWeight, double expectedCost, double expectedPrice)

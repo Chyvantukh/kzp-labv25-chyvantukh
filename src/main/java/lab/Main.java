@@ -19,6 +19,16 @@ import java.util.Locale;
  */
 public class Main {
     private static final String VERSION = "1.0.0";
+        private static final String HELP_MESSAGE = """
+                        Програма обробляє дані про товари з файлу data/input.csv.
+
+                        Доступні параметри:
+                            --help     показати цю довідку
+                            --version  показати версію програми
+
+                        Приклад запуску:
+                            java -jar target/kzp-labv25-chyvantukh-1.0.0.jar
+                        """;
     private static final String[] FIELD_NAMES = {"Назва", "Тип", "Вага", "Собiвартiсть", "Цiна"};
 
     /**
@@ -28,9 +38,15 @@ public class Main {
      * обчислює підсумкові показники для коректних записів і виводить результат
      * у консоль і файл звіту.</p>
      *
-     * @param args аргументи командного рядка; {@code --version} виводить версію програми
+     * @param args аргументи командного рядка; {@code --help} виводить довідку,
+     *             {@code --version} виводить версію програми
      */
     public static void main(String[] args) {
+        if (args.length == 1 && "--help".equals(args[0])) {
+            System.out.print(HELP_MESSAGE);
+            return;
+        }
+
         if (args.length == 1 && "--version".equals(args[0])) {
             System.out.println(VERSION);
             return;
