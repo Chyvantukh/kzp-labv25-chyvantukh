@@ -27,7 +27,7 @@ class MainTest {
         PrintStream originalOut = System.out;
         try {
             System.setOut(new PrintStream(output, true, StandardCharsets.UTF_8));
-            Main.main(new String[]{"--version"});
+            assertEquals(0, Main.run(new String[]{"--version"}));
         } finally {
             System.setOut(originalOut);
         }
@@ -42,7 +42,7 @@ class MainTest {
         PrintStream originalOut = System.out;
         try {
             System.setOut(new PrintStream(output, true, StandardCharsets.UTF_8));
-            Main.main(new String[]{"--help"});
+            assertEquals(0, Main.run(new String[]{"--help"}));
         } finally {
             System.setOut(originalOut);
         }
@@ -125,7 +125,7 @@ class MainTest {
         Files.move(input, backup);
         try {
             System.setErr(new PrintStream(errorOutput, true, StandardCharsets.UTF_8));
-            Main.main(new String[0]);
+            assertEquals(1, Main.run(new String[0]));
         } finally {
             System.setErr(originalErr);
             Files.move(backup, input);

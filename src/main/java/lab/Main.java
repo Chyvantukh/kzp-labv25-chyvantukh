@@ -18,6 +18,9 @@ import java.util.Locale;
  * стандартному виводі та у файлі {@code data/report.txt}.</p>
  */
 public class Main {
+    private static final int EXIT_SUCCESS = 0;
+    private static final int EXIT_INPUT_ERROR = 1;
+    private static final int EXIT_OUTPUT_ERROR = 2;
     private static final String VERSION = "1.0.0";
         private static final String HELP_MESSAGE = """
                         Програма обробляє дані про товари з файлу data/input.csv.
@@ -32,24 +35,31 @@ public class Main {
     private static final String[] FIELD_NAMES = {"Назва", "Тип", "Вага", "Собiвартiсть", "Цiна"};
 
     /**
-     * Запускає обробку даних про товари.
+     * Запускає програму та завершує JVM із кодом, який повертає обробник аргументів.
      *
-     * <p>Метод зчитує CSV-файл, формує списки допустимих товарів та помилок,
-     * обчислює підсумкові показники для коректних записів і виводить результат
-     * у консоль і файл звіту.</p>
+     * @param args аргументи командного рядка
+     */
+    public static void main(String[] args) {
+        System.exit(run(args));
+    }
+
+    /**
+     * Обробляє аргументи, вхідний файл і формування звіту.
      *
      * @param args аргументи командного рядка; {@code --help} виводить довідку,
      *             {@code --version} виводить версію програми
+    * @return код завершення: {@code 0} для успішного виконання, {@code 1} для помилки читання
+    *         або {@code 2} для помилки запису
      */
-    public static void main(String[] args) {
+    static int run(String[] args) {
         if (args.length == 1 && "--help".equals(args[0])) {
             System.out.print(HELP_MESSAGE);
-            return;
+            return EXIT_SUCCESS;
         }
 
         if (args.length == 1 && "--version".equals(args[0])) {
             System.out.println(VERSION);
-            return;
+            return EXIT_SUCCESS;
         }
 
         Path file = Path.of("data", "input.csv");
@@ -70,10 +80,10 @@ public class Main {
             }
         } catch (NoSuchFileException e) {
             System.err.printf("Файл не знайдено за шляхом: %s%n", file.toAbsolutePath());
-            return;
+            return EXIT_INPUT_ERROR;
         } catch (IOException e) {
             System.err.printf("Помилка читання файлу: %s%n", e.getMessage());
-            return;
+            return EXIT_INPUT_ERROR;
         }
 
         sb.append(String.format(Locale.ROOT, "=== УСПiШНО ЗАВАНТАЖЕНi ТОВАРИ (%d) ===%n",
@@ -112,11 +122,13 @@ public class Main {
         try {
             Files.writeString(report, sb.toString(), StandardCharsets.UTF_8);
         } catch (IOException ex) {
-            System.out.println(ex.getMessage());
+            System.err.printf("Помилка запису звіту: %s%n", ex.getMessage());
+            return EXIT_OUTPUT_ERROR;
         }
 
         String finalReport = sb.toString();
         System.out.println(finalReport);
+        return EXIT_SUCCESS;
     }
 
     /**
@@ -184,7 +196,7 @@ public class Main {
     /**
      * Перевіряє, чи рядок має всі необхідні поля і чи не містить зайвих значень.
      *
-        * @param fields масив полів, отриманий після поділу рядка за крапкою з комою
+      * @param fields масив полів, отриманий після поділу рядка за крапкою з комою
      * @param lineNumber номер рядка у файлі
      * @param errorLogs список логів помилок
      * @return {@code true}, якщо всі поля присутні й немає зайвих значень; інакше {@code false}
