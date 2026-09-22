@@ -89,32 +89,37 @@
 ## 6. GitHub Issues і коміти
 Завдання лабораторної роботи відстежувалися за допомогою GitHub Issues. Нижче наведено всі Issues, що стосуються реалізації та документування лабораторної роботи.
 
-| Issue | Назва задачі | Посилання |
-|---|---|---|
-| #1 | feature: set up laboratory project structure | [Issue #1](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/1) |
-| #2 | build: configure Maven toolchain and executable JAR | [Issue #2](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/2) |
-| #3 | ci: add GitHub Actions matrix and artifact publishing | [Issue #3](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/3) |
-| #4 | feat: add basic Main class | [Issue #4](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/4) |
-| #5 | fix: validate local build and resolve failing checks | [Issue #5](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/5) |
-| #6 | chore: add editorconfig and gitattributes for cross-platform consistency | [Issue #6](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/6) |
-| #7 | feat: add sample CSV input with valid and invalid records | [Issue #7](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/7) |
-| #8 | feat: implement CSV file reading | [Issue #8](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/8) |
-| #9 | feat: validate CSV fields | [Issue #9](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/9) |
-| #10 | feat: convert numeric CSV values | [Issue #10](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/10) |
-| #11 | feat: calculate variant metrics | [Issue #11](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/11) |
-| #12 | feat: generate and output unified report | [Issue #12](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/12) |
-| #13 | refactor: remove unused product output method | [Issue #13](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/13) |
-| #14 | bug: reject non-finite numeric values | [Issue #14](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/14) |
-| #15 | test: add level 3 edge case tests | [Issue #15](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/15) |
-| #16 | bug: add JUnit dependency for parameterized tests | [Issue #16](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/16) |
-| #17 | feature: complete test coverage for all scenarios | [Issue #17](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/17) |
-| #18 | bug: correct expected values in unit tests | [Issue #18](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/18) |
-| #19 | docs: complete README, REPORT and Javadoc | [Issue #19](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/19) |
-| #20 | bug: set lab.Main as the executable JAR main class | [Issue #20](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/20) |
-| #21 | feature: implement --version command | [Issue #21](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/21) |
-| #26 | test: add integration tests for the complete application workflow | [Issue #26](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/26) |
-| #27 | test: add tests for boundary and invalid input cases | [Issue #27](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/27) |
-| #29 | docs: Finalize REPORT.md | [Issue #29](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/29) |
+| Issue | Мітки | Назва задачі | Посилання |
+|---|---|---|---|
+| #1 | `feature` | feature: set up laboratory project structure | [Issue #1](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/1) |
+| #2 | `build` | build: configure Maven toolchain and executable JAR | [Issue #2](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/2) |
+| #3 | `ci` | ci: add GitHub Actions matrix and artifact publishing | [Issue #3](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/3) |
+| #4 | `feat` | feat: add basic Main class | [Issue #4](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/4) |
+| #5 | `fix` | fix: validate local build and resolve failing checks | [Issue #5](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/5) |
+| #6 | `chore` | chore: add editorconfig and gitattributes for cross-platform consistency | [Issue #6](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/6) |
+| #7 | `feat` | feat: add sample CSV input with valid and invalid records | [Issue #7](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/7) |
+| #8 | `feat` | feat: implement CSV file reading | [Issue #8](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/8) |
+| #9 | `feat` | feat: validate CSV fields | [Issue #9](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/9) |
+| #10 | `feat` | feat: convert numeric CSV values | [Issue #10](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/10) |
+| #11 | `feat` | feat: calculate variant metrics | [Issue #11](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/11) |
+| #12 | `feat` | feat: generate and output unified report | [Issue #12](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/12) |
+| #13 | `refactor` | refactor: remove unused product output method | [Issue #13](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/13) |
+| #14 | `bug` | bug: reject non-finite numeric values | [Issue #14](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/14) |
+| #15 | `test` | test: add level 3 edge case tests | [Issue #15](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/15) |
+| #16 | `bug` | bug: add JUnit dependency for parameterized tests | [Issue #16](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/16) |
+| #17 | `feature` | feature: complete test coverage for all scenarios | [Issue #17](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/17) |
+| #18 | `bug` | bug: correct expected values in unit tests | [Issue #18](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/18) |
+| #19 | `docs` | docs: complete README, REPORT and Javadoc | [Issue #19](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/19) |
+| #20 | `bug` | bug: set lab.Main as the executable JAR main class | [Issue #20](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/20) |
+| #21 | `feature` | feature: implement --version command | [Issue #21](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/21) |
+| #26 | `test` | test: add integration tests for the complete application workflow | [Issue #26](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/26) |
+| #27 | `test` | test: add tests for boundary and invalid input cases | [Issue #27](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/27) |
+| #29 | `docs` | docs: Finalize REPORT.md | [Issue #29](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/29) |
+| #30 | `feature` | feature: changing the delimiter for the split() function | [Issue #30](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/30) |
+| #31 | `feature` | feature: add the --help option to display help and instructions on how to run the programme | [Issue #31](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/31) |
+| #32 | `docs` | docs: add the answers to all the assessment questions for the laboratory session to REPORT.md | [Issue #32](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/32) |
+| #33 | `feature` | feature: terminate the programme using System.exit() with the appropriate exit code | [Issue #33](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/33) |
+| #34 | `feature` | feature: report empty input lines as validation errors | [Issue #34](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/34) |
 
 Відповідні зміни можна переглянути серед [комітів гілки `lab01`](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/commits/lab01/).
 
