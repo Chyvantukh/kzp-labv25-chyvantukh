@@ -27,13 +27,31 @@ class MainTest {
         PrintStream originalOut = System.out;
         try {
             System.setOut(new PrintStream(output, true, StandardCharsets.UTF_8));
-            Main.main(new String[]{"--version"});
+            assertEquals(0, Main.run(new String[]{"--version"}));
         } finally {
             System.setOut(originalOut);
         }
 
         assertEquals("%s%s".formatted("1.0.0", System.lineSeparator()),
             output.toString(StandardCharsets.UTF_8));
+    }
+
+    @Test
+    void main_shouldPrintHelp() {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        try {
+            System.setOut(new PrintStream(output, true, StandardCharsets.UTF_8));
+            assertEquals(0, Main.run(new String[]{"--help"}));
+        } finally {
+            System.setOut(originalOut);
+        }
+
+        String help = output.toString(StandardCharsets.UTF_8);
+        assertTrue(help.contains("--help"));
+        assertTrue(help.contains("--version"));
+        assertTrue(help.contains("Приклад запуску:"));
+        assertTrue(help.contains("data/input.csv"));
     }
 
     @ParameterizedTest
@@ -63,18 +81,22 @@ class MainTest {
     }
 
     @Test
-    void parseLine_shouldIgnoreEmptyLine() throws Exception {
+    void parseLine_shouldReportEmptyLineAsError() throws Exception {
         List<String> errors = new ArrayList<>();
         assertNull(invokeParseLine("", 1, errors));
-        assertEquals(0, errors.size());
+        assertEquals(1, errors.size());
+        assertTrue(errors.get(0).contains("Рядок 1: порожній рядок"));
+
+        errors.clear();
         assertNull(invokeParseLine("   ", 2, errors));
-        assertEquals(0, errors.size());
+        assertEquals(1, errors.size());
+        assertTrue(errors.get(0).contains("Рядок 2: порожній рядок"));
     }
 
     @Test
     void parseLine_shouldHandleZeroValues() throws Exception {
         List<String> errors = new ArrayList<>();
-        Object product = invokeParseLine("Товар,Тип,0,0,0", 3, errors);
+        Object product = invokeParseLine("Товар;Тип;0;0;0", 3, errors);
 
         assertNotNull(product);
         assertTrue(errors.isEmpty());
@@ -107,7 +129,7 @@ class MainTest {
         Files.move(input, backup);
         try {
             System.setErr(new PrintStream(errorOutput, true, StandardCharsets.UTF_8));
-            Main.main(new String[0]);
+            assertEquals(1, Main.run(new String[0]));
         } finally {
             System.setErr(originalErr);
             Files.move(backup, input);
@@ -187,37 +209,37 @@ class MainTest {
 
     private static Stream<Arguments> validProductLines() {
         return Stream.of(
-                Arguments.of("Хлiб пшеничний,хлiб,500,22.00,38.00", 500, 22.0, 38.0),
-                Arguments.of("Печиво,печиво,200,30,50.00", 200, 30.0, 50.0),
-                Arguments.of("Товар,Тип,10,5,7.50", 10, 5.0, 7.5),
-                Arguments.of("Товар , Тип , 125 , 30,50.00 ", 125, 30.0, 50.0)
+                Arguments.of("Хлiб пшеничний;хлiб;500;22.00;38.00", 500, 22.0, 38.0),
+                Arguments.of("Печиво;печиво;200;30;50.00", 200, 30.0, 50.0),
+                Arguments.of("Товар;Тип;10;5;7.50", 10, 5.0, 7.5),
+                Arguments.of("Товар ; Тип ; 125 ; 30;50.00 ", 125, 30.0, 50.0)
         );
     }
 
     private static Stream<Arguments> extremeProductLines() {
         return Stream.of(
-                Arguments.of("Максимум,Тип,%d,%s,%s".formatted(
+                Arguments.of("Максимум;Тип;%d;%s;%s".formatted(
                         Integer.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE),
                         Integer.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE),
-                Arguments.of("Український товар,випiчка,1,0.01,0.02", 1, 0.01, 0.02)
+                Arguments.of("Український товар;випiчка;1;0.01;0.02", 1, 0.01, 0.02)
         );
     }
 
     private static Stream<Arguments> invalidProductLines() {
         return Stream.of(
-                Arguments.of("Товар,Тип,,10.0,20.0", "вiдсутнє поле"),
-                Arguments.of("Товар,Тип,100,10.0", "вiдсутнє поле"),
-                Arguments.of("Товар,Тип,100,10.0,20.0,99", "забагато полiв"),
-                Arguments.of("Товар,Тип,abc,10.0,20.0", "Вага"),
-                Arguments.of("Товар,Тип,100,abc,20.0", "Собiвартiсть"),
-                Arguments.of("Товар,Тип,100,10.0,abc", "Цiна"),
-                Arguments.of("Товар,Тип,-1,10.0,20.0", "Вага"),
-                Arguments.of("Товар,Тип,100,-1,20.0", "Собiвартiсть"),
-                Arguments.of("Товар,Тип,100,10.0,-1", "Цiна"),
-                Arguments.of("Товар,Тип,100,NaN,20.0", "нечислове значення"),
-                Arguments.of("Товар,Тип,100,Infinity,20.0", "нечислове значення"),
-                Arguments.of("Товар,Тип,100,10.0,NaN", "нечислове значення"),
-                Arguments.of("Товар,Тип,100,10.0,Infinity", "нечислове значення")
+                Arguments.of("Товар;Тип;;10.0;20.0", "вiдсутнє поле"),
+                Arguments.of("Товар;Тип;100;10.0", "вiдсутнє поле"),
+                Arguments.of("Товар;Тип;100;10.0;20.0;99", "забагато полiв"),
+                Arguments.of("Товар;Тип;abc;10.0;20.0", "Вага"),
+                Arguments.of("Товар;Тип;100;abc;20.0", "Собiвартiсть"),
+                Arguments.of("Товар;Тип;100;10.0;abc", "Цiна"),
+                Arguments.of("Товар;Тип;-1;10.0;20.0", "Вага"),
+                Arguments.of("Товар;Тип;100;-1;20.0", "Собiвартiсть"),
+                Arguments.of("Товар;Тип;100;10.0;-1", "Цiна"),
+                Arguments.of("Товар;Тип;100;NaN;20.0", "нечислове значення"),
+                Arguments.of("Товар;Тип;100;Infinity;20.0", "нечислове значення"),
+                Arguments.of("Товар;Тип;100;10.0;NaN", "нечислове значення"),
+                Arguments.of("Товар;Тип;100;10.0;Infinity", "нечислове значення")
         );
     }
 

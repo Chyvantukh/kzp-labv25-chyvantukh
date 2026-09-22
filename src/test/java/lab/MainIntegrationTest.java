@@ -25,7 +25,7 @@ class MainIntegrationTest {
         try {
             assertTrue(Files.exists(input));
             System.setOut(new PrintStream(output, true, StandardCharsets.UTF_8));
-            Main.main(new String[0]);
+            assertEquals(0, Main.run(new String[0]));
 
             String consoleOutput = output.toString(StandardCharsets.UTF_8);
             String reportOutput = Files.readString(report, StandardCharsets.UTF_8);
