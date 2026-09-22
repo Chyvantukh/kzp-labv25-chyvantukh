@@ -81,12 +81,16 @@ class MainTest {
     }
 
     @Test
-    void parseLine_shouldIgnoreEmptyLine() throws Exception {
+    void parseLine_shouldReportEmptyLineAsError() throws Exception {
         List<String> errors = new ArrayList<>();
         assertNull(invokeParseLine("", 1, errors));
-        assertEquals(0, errors.size());
+        assertEquals(1, errors.size());
+        assertTrue(errors.get(0).contains("Рядок 1: порожній рядок"));
+
+        errors.clear();
         assertNull(invokeParseLine("   ", 2, errors));
-        assertEquals(0, errors.size());
+        assertEquals(1, errors.size());
+        assertTrue(errors.get(0).contains("Рядок 2: порожній рядок"));
     }
 
     @Test

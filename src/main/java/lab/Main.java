@@ -141,6 +141,7 @@ public class Main {
      */
     private static Product parseLine(String line, int lineNumber, List<String> errorLogs) {
         if (line.trim().isEmpty()) {
+            errorLogs.add(String.format(Locale.ROOT, "Рядок %d: порожній рядок", lineNumber));
             return null;
         }
 
