@@ -120,6 +120,9 @@
 | #32 | `docs` | docs: add the answers to all the assessment questions for the laboratory session to REPORT.md | [Issue #32](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/32) |
 | #33 | `feature` | feature: terminate the programme using System.exit() with the appropriate exit code | [Issue #33](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/33) |
 | #34 | `feature` | feature: report empty input lines as validation errors | [Issue #34](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/34) |
+| #35 | `documentation` | docs: update REPORT.md with all implemented issues | [Issue #35](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/35) |
+| #37 | `feature` | feature: add mandatory input and output command-line arguments | [Issue #37](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/37) |
+| #38 | `documentation` | docs: update README.md and REPORT.md for the final project changes | [Issue #38](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/issues/38) |
 
 Відповідні зміни можна переглянути серед [комітів гілки `lab01`](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/commits/lab01/).
 
