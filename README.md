@@ -2,9 +2,9 @@
 
 ## Призначення
 
-Програма зчитує дані про товари з файлу `data/input.csv`, перевіряє кожен запис,
+Програма зчитує дані про товари з файлу, переданого через `--input`, перевіряє кожен запис,
 відкидає некоректні рядки, обчислює агреговані показники та формує звіт у консоль
-і в текстовий файл `data/report.txt`.
+і в текстовий файл, переданий через `--output`.
 
 ## Формат входу
 
@@ -29,7 +29,7 @@
 ```bash
 mvnw.cmd verify
 mvnw.cmd package
-java -jar target/kzp-labv25-chyvantukh-1.0.0.jar
+java -jar target/kzp-labv25-chyvantukh-1.0.0.jar --input data/input.csv --output data/report.txt
 ```
 
 Для macOS та Ubuntu:
@@ -37,7 +37,7 @@ java -jar target/kzp-labv25-chyvantukh-1.0.0.jar
 ```bash
 ./mvnw verify
 ./mvnw package
-java -jar target/kzp-labv25-chyvantukh-1.0.0.jar
+java -jar target/kzp-labv25-chyvantukh-1.0.0.jar --input data/input.csv --output data/report.txt
 ```
 
 Щоб переглянути версію застосунку:
@@ -58,7 +58,7 @@ java -jar target/kzp-labv25-chyvantukh-1.0.0.jar --help
 
 ## Приклад роботи
 
-Після запуску програма читає дані з `data/input.csv`, виводить:
+Після запуску програма читає дані з файлу, вказаного в `--input`, і виводить:
 
 - коректні товари;
 - список помилок для некоректних рядків;
@@ -66,7 +66,7 @@ java -jar target/kzp-labv25-chyvantukh-1.0.0.jar --help
 - середній маржинальний прибуток;
 - найдорожчий товар.
 
-Результат також записується у файл `data/report.txt`.
+Результат також записується у файл, вказаний у `--output`.
 
 ## Примітка
 
