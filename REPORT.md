@@ -81,9 +81,9 @@
 ### Результати запуску на трьох ОС
 | ОС | Команда запуску | Результат |
 |---|---|---|
-| Windows 10 | java -jar target/kzp-labv25-chyvantukh-1.0.0.jar | звіт сформовано успішно |
-| Ubuntu 22.04 | java -jar target/kzp-labv25-chyvantukh-1.0.0.jar | звіт сформовано успішно |
-| macOS 14 | java -jar target/kzp-labv25-chyvantukh-1.0.0.jar | звіт сформовано успішно |
+| Windows 10 | java -jar target/kzp-labv25-chyvantukh-1.0.0.jar --input data/input.csv --output data/report.txt | звіт сформовано успішно |
+| Ubuntu 22.04 | java -jar target/kzp-labv25-chyvantukh-1.0.0.jar --input data/input.csv --output data/report.txt | звіт сформовано успішно |
+| macOS 14 | java -jar target/kzp-labv25-chyvantukh-1.0.0.jar --input data/input.csv --output data/report.txt | звіт сформовано успішно |
 
 
 ## 6. GitHub Issues і коміти
