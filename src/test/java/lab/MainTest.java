@@ -50,8 +50,9 @@ class MainTest {
         String help = output.toString(StandardCharsets.UTF_8);
         assertTrue(help.contains("--help"));
         assertTrue(help.contains("--version"));
+        assertTrue(help.contains("--input"));
+        assertTrue(help.contains("--output"));
         assertTrue(help.contains("Приклад запуску:"));
-        assertTrue(help.contains("data/input.csv"));
     }
 
     @ParameterizedTest
@@ -120,6 +121,21 @@ class MainTest {
     }
 
     @Test
+    void run_shouldRequireInputAndOutputArguments() {
+        ByteArrayOutputStream errorOutput = new ByteArrayOutputStream();
+        PrintStream originalErr = System.err;
+        try {
+            System.setErr(new PrintStream(errorOutput, true, StandardCharsets.UTF_8));
+            assertEquals(1, Main.run(new String[0]));
+        } finally {
+            System.setErr(originalErr);
+        }
+
+        assertTrue(errorOutput.toString(StandardCharsets.UTF_8)
+                .contains("необхідно вказати --input і --output"));
+    }
+
+    @Test
     void main_shouldReportMissingInputFile() throws Exception {
         Path input = Path.of("data", "input.csv");
         Path backup = Path.of("data", "input.csv.test-backup");
@@ -129,7 +145,9 @@ class MainTest {
         Files.move(input, backup);
         try {
             System.setErr(new PrintStream(errorOutput, true, StandardCharsets.UTF_8));
-            assertEquals(1, Main.run(new String[0]));
+            assertEquals(1, Main.run(new String[]{
+                    "--input", input.toString(), "--output", "data/report.txt"
+            }));
         } finally {
             System.setErr(originalErr);
             Files.move(backup, input);

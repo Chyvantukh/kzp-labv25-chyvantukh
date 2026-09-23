@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -13,24 +14,30 @@ import java.util.Locale;
 /**
  * Консольна програма для обробки даних про товари, збережених у CSV-файлі.
  *
- * <p>Програма читає записи з {@code data/input.csv}, перевіряє їхню коректність,
+ * <p>Програма читає записи з CSV-файлу, шлях до якого передається через {@code --input},
+ * перевіряє їхню коректність,
  * відкидає некоректні рядки, обчислює агреговані показники та створює звіт у
- * стандартному виводі та у файлі {@code data/report.txt}.</p>
+ * стандартному виводі та у файлі, переданому через {@code --output}.</p>
  */
 public class Main {
     private static final int EXIT_SUCCESS = 0;
     private static final int EXIT_INPUT_ERROR = 1;
     private static final int EXIT_OUTPUT_ERROR = 2;
-    private static final String VERSION = "1.0.0";
+        private static final String VERSION = "1.0.0";
         private static final String HELP_MESSAGE = """
-                        Програма обробляє дані про товари з файлу data/input.csv.
+                        Програма обробляє дані про товари з CSV-файлу.
 
-                        Доступні параметри:
-                            --help     показати цю довідку
-                            --version  показати версію програми
+                        Обов'язкові параметри:
+                            --input <шлях>   шлях до вхідного CSV-файлу
+                            --output <шлях>  шлях до файлу звіту
+
+                        Додаткові параметри:
+                            --help           показати цю довідку
+                            --version        показати версію програми
 
                         Приклад запуску:
-                            java -jar target/kzp-labv25-chyvantukh-1.0.0.jar
+                            java -jar target/kzp-labv25-chyvantukh-1.0.0.jar \\
+                                    --input data/input.csv --output data/report.txt
                         """;
     private static final String[] FIELD_NAMES = {"Назва", "Тип", "Вага", "Собiвартiсть", "Цiна"};
 
@@ -46,10 +53,11 @@ public class Main {
     /**
      * Обробляє аргументи, вхідний файл і формування звіту.
      *
-     * @param args аргументи командного рядка; {@code --help} виводить довідку,
-     *             {@code --version} виводить версію програми
-    * @return код завершення: {@code 0} для успішного виконання, {@code 1} для помилки читання
-    *         або {@code 2} для помилки запису
+      * @param args аргументи командного рядка; {@code --input} і {@code --output}
+      *             задають шляхи файлів, {@code --help} виводить довідку,
+      *             {@code --version} виводить версію програми
+      * @return код завершення: {@code 0} для успішного виконання, {@code 1} для помилки читання
+      *         або {@code 2} для помилки запису
      */
     static int run(String[] args) {
         if (args.length == 1 && "--help".equals(args[0])) {
@@ -62,7 +70,12 @@ public class Main {
             return EXIT_SUCCESS;
         }
 
-        Path file = Path.of("data", "input.csv");
+        CommandLineArguments commandLineArguments = parseArguments(args);
+        if (commandLineArguments == null) {
+            return EXIT_INPUT_ERROR;
+        }
+
+        Path file = commandLineArguments.inputPath();
 
         List<Product> validProducts = new ArrayList<>();
         List<String> errorLogs = new ArrayList<>();
@@ -118,7 +131,7 @@ public class Main {
         sb.append(String.format(Locale.ROOT, "Середнiй маржинальний прибуток: %.2f грн%n", calculateAverageMargin(validProducts)));
         sb.append("Найдорожчий товар: " + findMostExpensiveProduct(validProducts));
 
-        Path report = Path.of("data", "report.txt");
+        Path report = commandLineArguments.outputPath();
         try {
             Files.writeString(report, sb.toString(), StandardCharsets.UTF_8);
         } catch (IOException ex) {
@@ -129,6 +142,41 @@ public class Main {
         String finalReport = sb.toString();
         System.out.println(finalReport);
         return EXIT_SUCCESS;
+    }
+
+    private static CommandLineArguments parseArguments(String[] args) {
+        Path inputPath = null;
+        Path outputPath = null;
+
+        for (int index = 0; index < args.length; index += 2) {
+            if (index + 1 >= args.length) {
+                System.err.println("Помилка: параметри --input і --output повинні мати шлях.");
+                return null;
+            }
+
+            String option = args[index];
+            String pathValue = args[index + 1];
+            try {
+                if ("--input".equals(option) && inputPath == null) {
+                    inputPath = Path.of(pathValue);
+                } else if ("--output".equals(option) && outputPath == null) {
+                    outputPath = Path.of(pathValue);
+                } else {
+                    System.err.printf("Помилка: невідомий або повторений параметр %s%n", option);
+                    return null;
+                }
+            } catch (InvalidPathException exception) {
+                System.err.printf("Помилка: некоректний шлях %s%n", pathValue);
+                return null;
+            }
+        }
+
+        if (inputPath == null || outputPath == null) {
+            System.err.println("Помилка: необхідно вказати --input і --output.");
+            return null;
+        }
+
+        return new CommandLineArguments(inputPath, outputPath);
     }
 
     /**
@@ -281,5 +329,8 @@ public class Main {
         public String toString() {
             return String.format(Locale.ROOT, "%s (%.2f грн)", name, price);
         }
+    }
+
+    private record CommandLineArguments(Path inputPath, Path outputPath) {
     }
 }
