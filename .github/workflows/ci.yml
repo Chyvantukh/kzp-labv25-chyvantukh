@@ -27,11 +27,6 @@ jobs:
           java-version: '21'
           cache: maven
 
-      - name: Grant execute permission to Maven wrapper
-        if: runner.os != 'Windows'
-        shell: bash
-        run: chmod +x mvnw
-
       - name: Run Maven verification and packaging
         shell: bash
         run: ./mvnw --batch-mode --no-transfer-progress clean verify package
