@@ -139,6 +139,10 @@ public class Main {
 
         Path report = commandLineArguments.outputPath();
         try {
+            Path outputDirectory = report.getParent();
+            if (outputDirectory != null) {
+                Files.createDirectories(outputDirectory);
+            }
             Files.writeString(report, sb.toString(), StandardCharsets.UTF_8);
         } catch (IOException ex) {
             System.err.printf("Помилка запису звіту: %s%n", ex.getMessage());

@@ -323,4 +323,56 @@ class MainTest {
         method.setAccessible(true);
         return method.invoke(null, products);
     }
+
+    @Test
+    void main_shouldCreateMissingOutputDirectories() throws Exception {
+        Path input = Files.createTempFile("products", ".csv");
+        Path tempRoot = Files.createTempDirectory("output-directory-test");
+        Path outputDirectory = tempRoot.resolve("missing").resolve("nested");
+        Path report = outputDirectory.resolve("report.txt");
+        Files.writeString(input, "Товар;Тип;100;10.0;20.0\n", StandardCharsets.UTF_8);
+
+        PrintStream originalOut = System.out;
+        try {
+            System.setOut(new PrintStream(new ByteArrayOutputStream(), true, StandardCharsets.UTF_8));
+            assertEquals(0, Main.run(new String[]{
+                    "--input", input.toString(), "--output", report.toString()
+            }));
+            assertTrue(Files.isRegularFile(report));
+            assertTrue(Files.readString(report, StandardCharsets.UTF_8).contains("Товар"));
+        } finally {
+            System.setOut(originalOut);
+            Files.deleteIfExists(report);
+            Files.deleteIfExists(outputDirectory);
+            Files.deleteIfExists(outputDirectory.getParent());
+            Files.deleteIfExists(tempRoot);
+            Files.deleteIfExists(input);
+        }
+    }
+
+    @Test
+    void run_shouldCreateMissingOutputDirectories() throws Exception {
+        Path input = Files.createTempFile("products", ".csv");
+        Path tempRoot = Files.createTempDirectory("output-directory-test");
+        Path outputDirectory = tempRoot.resolve("missing").resolve("nested");
+        Path report = outputDirectory.resolve("report.txt");
+        Files.writeString(input, "Товар;Тип;100;10.0;20.0\n", StandardCharsets.UTF_8);
+
+        PrintStream originalOut = System.out;
+        try {
+            System.setOut(new PrintStream(new ByteArrayOutputStream(), true, StandardCharsets.UTF_8));
+            assertEquals(0, Main.run(new String[]{
+                    "--input", input.toString(), "--output", report.toString()
+            }));
+            assertTrue(Files.isRegularFile(report));
+            assertTrue(Files.readString(report, StandardCharsets.UTF_8).contains("Товар"));
+        } finally {
+            System.setOut(originalOut);
+            Files.deleteIfExists(report);
+            Files.deleteIfExists(outputDirectory);
+            Files.deleteIfExists(outputDirectory.getParent());
+            Files.deleteIfExists(tempRoot);
+            Files.deleteIfExists(input);
+        }
+    }
 }
