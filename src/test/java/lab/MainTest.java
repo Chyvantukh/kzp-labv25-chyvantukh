@@ -158,6 +158,29 @@ class MainTest {
     }
 
     @Test
+    void run_shouldReportNoMostExpensiveProductWhenInputIsInvalid() throws Exception {
+        Path input = Files.createTempFile("invalid-products", ".csv");
+        Path output = Files.createTempFile("invalid-products-report", ".txt");
+
+        Files.writeString(input, "Товар;Тип;abc;10.0;20.0\nТовар;Тип;100;10.0;abc\n",
+                StandardCharsets.UTF_8);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        try {
+            System.setOut(new PrintStream(outputStream, true, StandardCharsets.UTF_8));
+            assertEquals(0, Main.run(new String[]{"--input", input.toString(), "--output", output.toString()}));
+        } finally {
+            System.setOut(originalOut);
+            Files.deleteIfExists(input);
+            Files.deleteIfExists(output);
+        }
+
+        String report = outputStream.toString(StandardCharsets.UTF_8);
+        assertTrue(report.contains("Найдорожчий товар: відсутній") || report.contains("Найдорожчий товар: вiдсутнiй"));
+    }
+
+    @Test
     void hasAllFields_shouldReportMissingAndExtraFields() throws Exception {
         Method method = Main.class.getDeclaredMethod("hasAllFields", String[].class, int.class, List.class);
         method.setAccessible(true);

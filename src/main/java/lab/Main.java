@@ -126,10 +126,16 @@ public class Main {
 
         sb.append(System.lineSeparator());
 
+        Product mostExpensiveProduct = findMostExpensiveProduct(validProducts);
         sb.append("=== Предметний обрахунок ===").append(System.lineSeparator());
         sb.append(String.format(Locale.ROOT, "Загальна вага: %.0f г%n", calculateTotalWeight(validProducts)));
         sb.append(String.format(Locale.ROOT, "Середнiй маржинальний прибуток: %.2f грн%n", calculateAverageMargin(validProducts)));
-        sb.append("Найдорожчий товар: " + findMostExpensiveProduct(validProducts));
+        sb.append("Найдорожчий товар: ");
+        if (mostExpensiveProduct == null) {
+            sb.append("відсутній");
+        } else {
+            sb.append(mostExpensiveProduct);
+        }
 
         Path report = commandLineArguments.outputPath();
         try {
@@ -246,9 +252,9 @@ public class Main {
      * Перевіряє, чи рядок має всі необхідні поля і чи не містить зайвих значень.
      *
       * @param fields масив полів, отриманий після поділу рядка за крапкою з комою
-     * @param lineNumber номер рядка у файлі
-     * @param errorLogs список логів помилок
-     * @return {@code true}, якщо всі поля присутні й немає зайвих значень; інакше {@code false}
+      * @param lineNumber номер рядка у файлі
+      * @param errorLogs список логів помилок
+      * @return {@code true}, якщо всі поля присутні й немає зайвих значень; інакше {@code false}
      */
     private static boolean hasAllFields(String[] fields, int lineNumber, List<String> errorLogs) {
         boolean hasMissingField = false;
