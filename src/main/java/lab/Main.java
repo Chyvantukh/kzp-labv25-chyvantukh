@@ -39,8 +39,6 @@ public class Main {
                             java -jar target/kzp-labv25-chyvantukh-1.0.0.jar \\
                                     --input data/input.csv --output data/report.txt
                         """;
-    private static final String[] FIELD_NAMES = {"Назва", "Тип", "Вага", "Собiвартiсть", "Цiна"};
-
     /**
      * Запускає програму та завершує JVM із кодом, який повертає обробник аргументів.
      *
@@ -77,7 +75,7 @@ public class Main {
 
         Path file = commandLineArguments.inputPath();
 
-        List<Product> validProducts = new ArrayList<>();
+        List<BakeryItem> validProducts = new ArrayList<>();
         List<String> errorLogs = new ArrayList<>();
         StringBuilder sb = new StringBuilder();
         int lineNumber = 0;
@@ -86,9 +84,9 @@ public class Main {
             String line;
 
             while ((line = reader.readLine()) != null) {
-                Product product = parseLine(line, ++lineNumber, errorLogs);
-                if (product != null) {
-                    validProducts.add(product);
+                BakeryItem item = parseLine(line, ++lineNumber, errorLogs);
+                if (item != null) {
+                    validProducts.add(item);
                 }
             }
         } catch (NoSuchFileException e) {
@@ -105,10 +103,10 @@ public class Main {
             sb.append("Не знайдено жодного коректного товару.")
                 .append(System.lineSeparator());
         } else {
-            for (Product product : validProducts) {
+            for (BakeryItem item : validProducts) {
                 sb.append(String.format(Locale.ROOT,
                         "Назва = %-15s | Тип = %-10s | Вага = %4dг | Собiвартiсть = %6.2f | Цiна = %6.2f%n",
-                        product.name(), product.type(), product.weightG(), product.cost(), product.price()));
+                        item.getName(), item.getType(), item.getWeightG(), item.getCost(), item.getPrice()));
             }
         }
 
@@ -126,20 +124,32 @@ public class Main {
 
         sb.append(System.lineSeparator());
 
+        BakeryItem mostExpensiveProduct = findMostExpensiveProduct(validProducts);
         sb.append("=== Предметний обрахунок ===").append(System.lineSeparator());
-        sb.append(String.format(Locale.ROOT, "Загальна вага: %.0f г%n", calculateTotalWeight(validProducts)));
-        sb.append(String.format(Locale.ROOT, "Середнiй маржинальний прибуток: %.2f грн%n", calculateAverageMargin(validProducts)));
-        sb.append("Найдорожчий товар: " + findMostExpensiveProduct(validProducts));
+        WeightMargin weightMargin = calculateWeightMargin(validProducts);
+        sb.append(String.format(Locale.ROOT, "Загальна вага: %.0f г%n", weightMargin.totalWeight()));
+        sb.append(String.format(Locale.ROOT, "Середнiй маржинальний прибуток: %.2f грн%n",
+                weightMargin.averageMargin()));
+        sb.append("Найдорожчий товар: ");
+        if (mostExpensiveProduct == null) {
+            sb.append("відсутній");
+        } else {
+            sb.append(mostExpensiveProduct);
+        }
 
+        String finalReport = sb.toString();
         Path report = commandLineArguments.outputPath();
         try {
-            Files.writeString(report, sb.toString(), StandardCharsets.UTF_8);
+            Path outputDirectory = report.getParent();
+            if (outputDirectory != null) {
+                Files.createDirectories(outputDirectory);
+            }
+            Files.writeString(report, finalReport, StandardCharsets.UTF_8);
         } catch (IOException ex) {
             System.err.printf("Помилка запису звіту: %s%n", ex.getMessage());
             return EXIT_OUTPUT_ERROR;
         }
 
-        String finalReport = sb.toString();
         System.out.println(finalReport);
         return EXIT_SUCCESS;
     }
@@ -187,121 +197,31 @@ public class Main {
      * @param errorLogs список помилок, які треба зафіксувати при валідації
      * @return об'єкт товару, якщо рядок коректний; інакше {@code null}
      */
-    private static Product parseLine(String line, int lineNumber, List<String> errorLogs) {
-        if (line.trim().isEmpty()) {
-            errorLogs.add(String.format(Locale.ROOT, "Рядок %d: порожній рядок", lineNumber));
-            return null;
-        }
-
-        String[] fields = line.split(";", -1);
-        if (!hasAllFields(fields, lineNumber, errorLogs)) {
-            return null;
-        }
-
-        String name = fields[0].trim();
-        String type = fields[1].trim();
-        int weightG;
-        double cost;
-        double price;
-        String currentField = "";
-
+    private static BakeryItem parseLine(String line, int lineNumber, List<String> errorLogs) {
         try {
-            currentField = "Вага";
-            weightG = Integer.parseInt(fields[2].trim());
-            if (weightG < 0) {
-                throw new IllegalArgumentException();
-            }
-
-            currentField = "Собiвартiсть";
-            cost = Double.parseDouble(fields[3].trim().replace(',', '.'));
-            if (!Double.isFinite(cost)) {
-                throw new NumberFormatException();
-            }
-            if (cost < 0) {
-                throw new IllegalArgumentException();
-            }
-
-            currentField = "Цiна";
-            price = Double.parseDouble(fields[4].trim().replace(',', '.'));
-            if (!Double.isFinite(price)) {
-                throw new NumberFormatException();
-            }
-            if (price < 0) {
-                throw new IllegalArgumentException();
-            }
-        } catch (NumberFormatException e) {
-            errorLogs.add(String.format(Locale.ROOT, "Рядок %d: поле \"%s\" має нечислове значення",
-                    lineNumber, currentField));
-            return null;
-        } catch (IllegalArgumentException e) {
-            errorLogs.add(String.format(Locale.ROOT, "Рядок %d: поле \"%s\" не може бути вiд'ємним",
-                    lineNumber, currentField));
+            return BakeryItem.fromCsv(line);
+        } catch (IllegalArgumentException exception) {
+            errorLogs.add("Рядок %d: %s".formatted(lineNumber, exception.getMessage()));
             return null;
         }
-
-        return new Product(name, type, weightG, cost, price);
     }
 
     /**
-     * Перевіряє, чи рядок має всі необхідні поля і чи не містить зайвих значень.
-     *
-      * @param fields масив полів, отриманий після поділу рядка за крапкою з комою
-     * @param lineNumber номер рядка у файлі
-     * @param errorLogs список логів помилок
-     * @return {@code true}, якщо всі поля присутні й немає зайвих значень; інакше {@code false}
-     */
-    private static boolean hasAllFields(String[] fields, int lineNumber, List<String> errorLogs) {
-        boolean hasMissingField = false;
-
-        for (int fieldIndex = 0; fieldIndex < FIELD_NAMES.length; fieldIndex++) {
-            if (fieldIndex >= fields.length || fields[fieldIndex].trim().isEmpty()) {
-                errorLogs.add(String.format(Locale.ROOT, "Рядок %d: вiдсутнє поле \"%s\"",
-                        lineNumber, FIELD_NAMES[fieldIndex]));
-                hasMissingField = true;
-            }
-        }
-
-        if (fields.length > FIELD_NAMES.length) {
-            errorLogs.add(String.format(Locale.ROOT,
-                    "Рядок %d: забагато полiв (очiкувалося %d, знайдено %d)",
-                    lineNumber, FIELD_NAMES.length, fields.length));
-            return false;
-        }
-
-        return !hasMissingField;
-    }
-
-    /**
-     * Підраховує загальну вагу всіх коректних товарів.
+     * Обчислює загальну вагу та середню маржу коректних товарів за один прохід.
      *
      * @param products список товарів
-     * @return сумарна вага у грамах
+     * @return пара підсумкових значень: вага та середня маржа
      */
-    private static double calculateTotalWeight(List<Product> products) {
-        double total = 0;
-        for (Product product : products) {
-            total += product.weightG();
-        }
-        return total;
-    }
-
-    /**
-     * Обчислює середній маржинальний прибуток для списку товарів.
-     *
-     * @param products список товарів
-     * @return середня різниця між ціною та собівартістю або {@code 0.0}, якщо список порожній
-     */
-    private static double calculateAverageMargin(List<Product> products) {
-        if (products.isEmpty()) {
-            return 0.0;
-        }
-
+    private static WeightMargin calculateWeightMargin(List<BakeryItem> products) {
+        double totalWeight = 0;
         double totalMargin = 0;
-        for (Product product : products) {
-            totalMargin += (product.price() - product.cost());
+        for (BakeryItem item : products) {
+            totalWeight += item.getWeightG();
+            totalMargin += (item.getPrice() - item.getCost());
         }
 
-        return totalMargin / products.size();
+        double averageMargin = products.isEmpty() ? 0.0 : totalMargin / products.size();
+        return new WeightMargin(totalWeight, averageMargin);
     }
 
     /**
@@ -310,25 +230,21 @@ public class Main {
      * @param products список товарів
      * @return товар з максимальною ціною або {@code null}, якщо список порожній
      */
-    private static Product findMostExpensiveProduct(List<Product> products) {
+    private static BakeryItem findMostExpensiveProduct(List<BakeryItem> products) {
         if (products.isEmpty()) {
             return null;
         }
 
-        Product maxProduct = products.get(0);
-        for (Product product : products) {
-            if (product.price() > maxProduct.price()) {
-                maxProduct = product;
+        BakeryItem maxProduct = products.get(0);
+        for (BakeryItem item : products) {
+            if (item.getPrice() > maxProduct.getPrice()) {
+                maxProduct = item;
             }
         }
         return maxProduct;
     }
 
-    private record Product(String name, String type, int weightG, double cost, double price) {
-        @Override
-        public String toString() {
-            return String.format(Locale.ROOT, "%s (%.2f грн)", name, price);
-        }
+    private record WeightMargin(double totalWeight, double averageMargin) {
     }
 
     private record CommandLineArguments(Path inputPath, Path outputPath) {
