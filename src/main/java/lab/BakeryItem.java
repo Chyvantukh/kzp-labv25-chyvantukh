@@ -29,14 +29,19 @@ public BakeryItem(String name, String type, int weightG, double cost, double pri
         throw new IllegalArgumentException("Назва типу товару не може бути порожньою!");
     }
     if (weightG < 0) {
-        throw new IllegalArgumentException("Вага не може бути від'ємною!");
+        throw new IllegalArgumentException("поле \"Вага\" не може бути вiд'ємним");
     }
-    if (cost < 0 || !Double.isFinite(cost)) {
-        throw new IllegalArgumentException(
-                "Собівартість має бути скінченною і невід'ємною!");
+    if (!Double.isFinite(cost)) {
+        throw new IllegalArgumentException("поле \"Собiвартiсть\" має нечислове значення");
     }
-    if (price < 0 || !Double.isFinite(price)) {
-        throw new IllegalArgumentException("Ціна має бути скінченною і невід'ємною!");
+    if (cost < 0) {
+        throw new IllegalArgumentException("поле \"Собiвартiсть\" не може бути вiд'ємним");
+    }
+    if (!Double.isFinite(price)) {
+        throw new IllegalArgumentException("поле \"Цiна\" має нечислове значення");
+    }
+    if (price < 0) {
+        throw new IllegalArgumentException("поле \"Цiна\" не може бути вiд'ємним");
     }
 
     this.name = name;
@@ -117,7 +122,7 @@ public static BakeryItem fromCsv(String line) {
                 .formatted(FIELD_NAMES.length, fields.length));
     }
 
-    for (int index = 0; index < fields.length; index++) {
+    for (int index = 2; index < fields.length; index++) {
         if (fields[index].trim().isEmpty()) {
             throw new IllegalArgumentException("вiдсутнє поле \"%s\"".formatted(FIELD_NAMES[index]));
         }
@@ -131,27 +136,11 @@ public static BakeryItem fromCsv(String line) {
         weightG = Integer.parseInt(fields[2].trim());
         currentField = FIELD_NAMES[3];
         cost = Double.parseDouble(fields[3].trim().replace(',', '.'));
-        if (!Double.isFinite(cost)) {
-            throw new NumberFormatException();
-        }
         currentField = FIELD_NAMES[4];
         price = Double.parseDouble(fields[4].trim().replace(',', '.'));
-        if (!Double.isFinite(price)) {
-            throw new NumberFormatException();
-        }
     } catch (NumberFormatException exception) {
         throw new IllegalArgumentException(
                 "поле \"%s\" має нечислове значення".formatted(currentField), exception);
-    }
-
-    if (weightG < 0) {
-        throw new IllegalArgumentException("поле \"%s\" не може бути вiд'ємним".formatted(FIELD_NAMES[2]));
-    }
-    if (cost < 0) {
-        throw new IllegalArgumentException("поле \"%s\" не може бути вiд'ємним".formatted(FIELD_NAMES[3]));
-    }
-    if (price < 0) {
-        throw new IllegalArgumentException("поле \"%s\" не може бути вiд'ємним".formatted(FIELD_NAMES[4]));
     }
 
     return new BakeryItem(fields[0].trim(), fields[1].trim(), weightG, cost, price);
