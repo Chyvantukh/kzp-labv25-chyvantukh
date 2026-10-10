@@ -1,6 +1,8 @@
     package lab;
 
-    public class BakeryItem {
+    import java.util.Locale;
+
+        public class BakeryItem {
         private final String name;
         private final String type;
         private final int weightG;
@@ -76,5 +78,15 @@
          * @return ціна виробу
          */
         public double getPrice() {return price;}
+
+        /**
+         * Повертає зрозуміле текстове представлення виробу з ціною у форматі, незалежному від локалі ОС.
+         *
+         * @return назва виробу та його ціна з двома десятковими знаками
+         */
+        @Override
+        public String toString() {
+            return String.format(Locale.ROOT, "%s (%.2f грн)", name, price);
+        }
 
     }
