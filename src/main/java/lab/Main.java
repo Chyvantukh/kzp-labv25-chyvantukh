@@ -198,58 +198,13 @@ public class Main {
      * @return об'єкт товару, якщо рядок коректний; інакше {@code null}
      */
     private static Product parseLine(String line, int lineNumber, List<String> errorLogs) {
-        if (line.trim().isEmpty()) {
-            errorLogs.add(String.format(Locale.ROOT, "Рядок %d: порожній рядок", lineNumber));
-            return null;
-        }
-
-        String[] fields = line.split(";", -1);
-        if (!hasAllFields(fields, lineNumber, errorLogs)) {
-            return null;
-        }
-
-        String name = fields[0].trim();
-        String type = fields[1].trim();
-        int weightG;
-        double cost;
-        double price;
-        String currentField = "";
-
         try {
-            currentField = "Вага";
-            weightG = Integer.parseInt(fields[2].trim());
-            if (weightG < 0) {
-                throw new IllegalArgumentException();
-            }
-
-            currentField = "Собiвартiсть";
-            cost = Double.parseDouble(fields[3].trim().replace(',', '.'));
-            if (!Double.isFinite(cost)) {
-                throw new NumberFormatException();
-            }
-            if (cost < 0) {
-                throw new IllegalArgumentException();
-            }
-
-            currentField = "Цiна";
-            price = Double.parseDouble(fields[4].trim().replace(',', '.'));
-            if (!Double.isFinite(price)) {
-                throw new NumberFormatException();
-            }
-            if (price < 0) {
-                throw new IllegalArgumentException();
-            }
-        } catch (NumberFormatException e) {
-            errorLogs.add(String.format(Locale.ROOT, "Рядок %d: поле \"%s\" має нечислове значення",
-                    lineNumber, currentField));
-            return null;
-        } catch (IllegalArgumentException e) {
-            errorLogs.add(String.format(Locale.ROOT, "Рядок %d: поле \"%s\" не може бути вiд'ємним",
-                    lineNumber, currentField));
+            BakeryItem item = BakeryItem.fromCsv(line);
+            return new Product(item.getName(), item.getType(), item.getWeightG(), item.getCost(), item.getPrice());
+        } catch (IllegalArgumentException exception) {
+            errorLogs.add("Рядок %d: %s".formatted(lineNumber, exception.getMessage()));
             return null;
         }
-
-        return new Product(name, type, weightG, cost, price);
     }
 
     /**
