@@ -22,6 +22,18 @@ private final double price;
  * @throws IllegalArgumentException якщо будь-який аргумент не відповідає вимогам
  */
 public BakeryItem(String name, String type, int weightG, double cost, double price) {
+    this(validateArguments(name, type, weightG, cost, price));
+}
+
+private BakeryItem(ValidatedArguments arguments) {
+    this.name = arguments.name();
+    this.type = arguments.type();
+    this.weightG = arguments.weightG();
+    this.cost = arguments.cost();
+    this.price = arguments.price();
+}
+
+private static ValidatedArguments validateArguments(String name, String type, int weightG, double cost, double price) {
     if (name == null || name.trim().isEmpty()) {
         throw new IllegalArgumentException("Назва товару не може бути порожньою!");
     }
@@ -44,11 +56,7 @@ public BakeryItem(String name, String type, int weightG, double cost, double pri
         throw new IllegalArgumentException("поле \"Цiна\" не може бути вiд'ємним");
     }
 
-    this.name = name;
-    this.type = type;
-    this.weightG = weightG;
-    this.cost = cost;
-    this.price = price;
+    return new ValidatedArguments(name, type, weightG, cost, price);
 }
 
 /**
@@ -154,5 +162,8 @@ public static BakeryItem fromCsv(String line) {
 @Override
 public String toString() {
     return String.format(Locale.ROOT, "%s (%.2f грн)", name, price);
+}
+
+private record ValidatedArguments(String name, String type, int weightG, double cost, double price) {
 }
 }
