@@ -2,6 +2,13 @@ package lab;
 
 import java.util.Locale;
 
+/**
+ * Представляє один товар, прочитаний із рядка CSV-файлу.
+ *
+ * <p>Клас зберігає основні властивості товару, перевіряє їхню коректність при створенні
+ * та надає фабричний метод для створення екземпляра зі строки у форматі
+ * {@code Назва;Тип;Вага;Собівартість;Ціна}.</p>
+ */
 public class BakeryItem {
 private static final String[] FIELD_NAMES = {"Назва", "Тип", "Вага", "Собiвартiсть", "Цiна"};
 
@@ -25,14 +32,34 @@ public BakeryItem(String name, String type, int weightG, double cost, double pri
     this(validateArguments(name, type, weightG, cost, price));
 }
 
+/**
+ * Приватний конструктор, який ініціалізує об'єкт уже перевіреними значеннями.
+ *
+ * <p>Використовується як внутрішня точка створення після виконання валідації аргументів,
+ * що дає змогу централізовано перевіряти коректність даних перед збереженням у поля.</p>
+ *
+ * @param arguments перевірений набір параметрів для створення товару
+ */
 private BakeryItem(ValidatedArguments arguments) {
-    this.name = arguments.name();
-    this.type = arguments.type();
-    this.weightG = arguments.weightG();
-    this.cost = arguments.cost();
-    this.price = arguments.price();
+this.name = arguments.name();
+this.type = arguments.type();
+this.weightG = arguments.weightG();
+this.cost = arguments.cost();
+this.price = arguments.price();
 }
 
+/**
+ * Перевіряє аргументи конструктора та формує об'єкт, що містить тільки валідні значення.
+ *
+ * @param name назва товару
+ * @param type тип товару
+ * @param weightG вага товару в грамах
+ * @param cost собівартість товару
+ * @param price ціна товару
+ * @return перевірені значення, що готові до створення екземпляра
+ * @throws IllegalArgumentException якщо назва, тип, вага або числові поля не відповідають
+ *         допустимим обмеженням
+ */
 private static ValidatedArguments validateArguments(String name, String type, int weightG, double cost, double price) {
     if (name == null || name.trim().isEmpty()) {
         throw new IllegalArgumentException("Назва товару не може бути порожньою!");
@@ -164,6 +191,15 @@ public String toString() {
     return String.format(Locale.ROOT, "%s (%.2f грн)", name, price);
 }
 
+/**
+ * Внутрішній контейнер для перевірених параметрів конструктора.
+ *
+ * @param name назва товару
+ * @param type тип товару
+ * @param weightG вага товару в грамах
+ * @param cost собівартість товару
+ * @param price ціна товару
+ */
 private record ValidatedArguments(String name, String type, int weightG, double cost, double price) {
 }
 }

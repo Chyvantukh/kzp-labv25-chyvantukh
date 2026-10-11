@@ -23,22 +23,22 @@ public class Main {
     private static final int EXIT_SUCCESS = 0;
     private static final int EXIT_INPUT_ERROR = 1;
     private static final int EXIT_OUTPUT_ERROR = 2;
-        private static final String VERSION = "1.0.0";
-        private static final String HELP_MESSAGE = """
-                        Програма обробляє дані про товари з CSV-файлу.
+    private static final String VERSION = "1.0.0";
+    private static final String HELP_MESSAGE = """
+            Програма обробляє дані про товари з CSV-файлу.
 
-                        Обов'язкові параметри:
-                            --input <шлях>   шлях до вхідного CSV-файлу
-                            --output <шлях>  шлях до файлу звіту
+            Обов'язкові параметри:
+                --input <шлях>   шлях до вхідного CSV-файлу
+                --output <шлях>  шлях до файлу звіту
 
-                        Додаткові параметри:
-                            --help           показати цю довідку
-                            --version        показати версію програми
+            Додаткові параметри:
+                --help           показати цю довідку
+                --version        показати версію програми
 
-                        Приклад запуску:
-                            java -jar target/kzp-labv25-chyvantukh-1.0.0.jar \\
-                                    --input data/input.csv --output data/report.txt
-                        """;
+            Приклад запуску:
+                java -jar target/kzp-labv25-chyvantukh-1.0.0.jar \\
+                        --input data/input.csv --output data/report.txt
+            """;
     /**
      * Запускає програму та завершує JVM із кодом, який повертає обробник аргументів.
      *
@@ -51,11 +51,11 @@ public class Main {
     /**
      * Обробляє аргументи, вхідний файл і формування звіту.
      *
-      * @param args аргументи командного рядка; {@code --input} і {@code --output}
-      *             задають шляхи файлів, {@code --help} виводить довідку,
-      *             {@code --version} виводить версію програми
-      * @return код завершення: {@code 0} для успішного виконання, {@code 1} для помилки читання
-      *         або {@code 2} для помилки запису
+     * @param args аргументи командного рядка; {@code --input} і {@code --output}
+     *             задають шляхи файлів, {@code --help} виводить довідку,
+     *             {@code --version} виводить версію програми
+     * @return код завершення: {@code 0} для успішного виконання, {@code 1} для помилки читання
+     *         або {@code 2} для помилки запису
      */
     static int run(String[] args) {
         if (args.length == 1 && "--help".equals(args[0])) {
@@ -154,6 +154,16 @@ public class Main {
         return EXIT_SUCCESS;
     }
 
+    /**
+     * Парсить аргументи командного рядка та повертає шлях до вхідного й вихідного файлів.
+     *
+     * <p>Програма допускає лише пари {@code --input <шлях>} і {@code --output <шлях>};
+     * повторення або відсутність обов'язкових параметрів вважається помилкою.</p>
+     *
+     * @param args аргументи командного рядка, передані під час запуску програми
+     * @return об'єкт із шляхами до вхідного й вихідного файлів, або {@code null}, якщо
+     *         аргументи некоректні
+     */
     private static CommandLineArguments parseArguments(String[] args) {
         Path inputPath = null;
         Path outputPath = null;
@@ -244,9 +254,21 @@ public class Main {
         return maxProduct;
     }
 
+    /**
+     * Внутрішній контейнер для підсумкових показників обробки товарів.
+     *
+     * @param totalWeight сумарна вага усіх коректних товарів у грамах
+     * @param averageMargin середній маржинальний прибуток у гривнях
+     */
     private record WeightMargin(double totalWeight, double averageMargin) {
     }
 
+    /**
+     * Внутрішній контейнер для шляхів до вхідного та вихідного файлів.
+     *
+     * @param inputPath шлях до CSV-файлу з даними
+     * @param outputPath шлях до файлу зі звітом
+     */
     private record CommandLineArguments(Path inputPath, Path outputPath) {
     }
 }
