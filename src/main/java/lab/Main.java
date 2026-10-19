@@ -106,7 +106,8 @@ public class Main {
             for (BakeryItem item : validProducts) {
                 sb.append(String.format(Locale.ROOT,
                         "Назва = %-15s | Тип = %-10s | Вага = %4dг | Собiвартiсть = %6.2f | Цiна = %6.2f%n",
-                        item.getName(), item.getType(), item.getWeightG(), item.getCost(), item.getPrice()));
+                        item.getName(), item.getKind().csvValue(), item.getWeightG(),
+                        item.getCost(), item.getPrice()));
             }
         }
 
