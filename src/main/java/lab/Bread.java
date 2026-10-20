@@ -6,6 +6,11 @@ package lab;
 public final class Bread extends BakeryItem {
     private static final double MANUFACTURING_COST_RATE = 0.05;
 
+    /**
+     * Ініціалізує хліб даними, попередньо перевіреними фабрикою {@link #create}.
+     *
+     * @param data перевірені спільні властивості виробу
+     */
     private Bread(BakeryItem.ValidatedData data) {
         super(data);
     }

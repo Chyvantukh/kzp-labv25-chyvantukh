@@ -6,6 +6,11 @@ package lab;
 public final class Pastry extends BakeryItem {
     private static final double PACKAGING_COST_RATE = 0.10;
 
+    /**
+     * Ініціалізує виріб даними, попередньо перевіреними фабрикою {@link #create}.
+     *
+     * @param data перевірені спільні властивості виробу
+     */
     private Pastry(BakeryItem.ValidatedData data) {
         super(data);
     }

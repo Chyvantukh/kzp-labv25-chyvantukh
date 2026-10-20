@@ -19,6 +19,11 @@ public final class MainController {
     private static final int EXIT_INPUT_ERROR = 1;
     private static final int EXIT_OUTPUT_ERROR = 2;
 
+    /**
+     * Створює текст довідки з версією проєкту без номера збірки.
+     *
+     * @return довідка з параметрами запуску та прикладом команди
+     */
     private static String helpMessage() {
         String version = BuildInfo.version();
         int buildSeparator = version.indexOf('+');
@@ -40,9 +45,20 @@ public final class MainController {
                 .formatted(mavenVersion);
     }
 
+    /**
+     * Забороняє створення екземплярів контролера, який містить лише статичні операції.
+     */
     private MainController() {
     }
 
+    /**
+     * Обробляє аргументи командного рядка, CSV-файл і записує підсумковий звіт.
+     *
+     * @param args параметри командного рядка; підтримуються {@code --input},
+     *             {@code --output}, {@code --help} і {@code --version}
+     * @return {@code 0} у разі успіху, {@code 1} у разі помилки аргументів або читання,
+     *         {@code 2} у разі помилки запису звіту
+     */
     static int run(String[] args) {
         if (args.length == 1 && "--help".equals(args[0])) {
             System.out.print(helpMessage());
@@ -141,6 +157,12 @@ public final class MainController {
         return EXIT_SUCCESS;
     }
 
+    /**
+     * Перевіряє пари параметрів і створює шляхи до вхідного та вихідного файлів.
+     *
+     * @param args аргументи командного рядка
+     * @return шляхи до файлів або {@code null}, якщо параметри некоректні
+     */
     private static CommandLineArguments parseArguments(String[] args) {
         Path inputPath = null;
         Path outputPath = null;
@@ -176,6 +198,14 @@ public final class MainController {
         return new CommandLineArguments(inputPath, outputPath);
     }
 
+    /**
+     * Перетворює CSV-рядок на товар або додає помилку до звіту.
+     *
+     * @param line рядок CSV
+     * @param lineNumber номер рядка у вхідному файлі
+     * @param errorLogs список повідомлень про некоректні рядки
+     * @return створений товар або {@code null}, якщо рядок не пройшов перевірку
+     */
     private static BakeryItem parseLine(String line, int lineNumber, List<String> errorLogs) {
         try {
             return BakeryItem.fromCsv(line);
@@ -185,6 +215,12 @@ public final class MainController {
         }
     }
 
+    /**
+     * Підсумовує вагу та обчислює середню маржу товарів.
+     *
+     * @param products коректні товари
+     * @return загальна вага та середня маржа; для порожнього списку маржа дорівнює нулю
+     */
     private static WeightMargin calculateWeightMargin(List<BakeryItem> products) {
         double totalWeight = 0;
         double totalMargin = 0;
@@ -197,6 +233,12 @@ public final class MainController {
         return new WeightMargin(totalWeight, averageMargin);
     }
 
+    /**
+     * Знаходить коректний товар із найбільшою ціною.
+     *
+     * @param products коректні товари
+     * @return найдорожчий товар або {@code null}, якщо список порожній
+     */
     private static BakeryItem findMostExpensiveProduct(List<BakeryItem> products) {
         if (products.isEmpty()) {
             return null;
@@ -211,9 +253,21 @@ public final class MainController {
         return maxProduct;
     }
 
+    /**
+     * Зберігає агреговані показники звіту.
+     *
+     * @param totalWeight загальна вага товарів у грамах
+     * @param averageMargin середня маржа у гривнях
+     */
     private record WeightMargin(double totalWeight, double averageMargin) {
     }
 
+    /**
+     * Зберігає шляхи до вхідного CSV-файлу та вихідного звіту.
+     *
+     * @param inputPath шлях до вхідного файлу
+     * @param outputPath шлях до файлу звіту
+     */
     private record CommandLineArguments(Path inputPath, Path outputPath) {
     }
 }

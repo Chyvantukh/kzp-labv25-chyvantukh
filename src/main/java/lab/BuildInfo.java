@@ -14,6 +14,9 @@ import java.util.Properties;
 public final class BuildInfo {
     private static final String RESOURCE = "/version.properties";
 
+    /**
+     * Забороняє створення екземплярів класу з утилітарним методом версії.
+     */
     private BuildInfo() {
     }
 
