@@ -1,6 +1,7 @@
 package lab;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayOutputStream;
@@ -28,7 +29,7 @@ class MainTest {
             System.setOut(originalOut);
         }
 
-        assertEquals("1.0.0" + System.lineSeparator(), output.toString(StandardCharsets.UTF_8));
+        assertEquals(BuildInfo.version() + System.lineSeparator(), output.toString(StandardCharsets.UTF_8));
     }
 
     @Test
@@ -48,6 +49,12 @@ class MainTest {
         assertTrue(help.contains("--input"));
         assertTrue(help.contains("--output"));
         assertTrue(help.contains("Приклад запуску:"));
+        String version = BuildInfo.version();
+        int buildSeparator = version.indexOf('+');
+        String mavenVersion = buildSeparator < 0 ? version : version.substring(0, buildSeparator);
+        assertTrue(help.contains("java -jar target/kzp-labv25-chyvantukh-%s-all.jar"
+                .formatted(mavenVersion)));
+        assertFalse(help.contains("kzp-labv25-chyvantukh-%s-all.jar".formatted(version)));
     }
 
     @Test
