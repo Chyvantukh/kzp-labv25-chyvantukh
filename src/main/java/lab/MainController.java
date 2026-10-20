@@ -23,21 +23,21 @@ public final class MainController {
         String version = BuildInfo.version();
         int buildSeparator = version.indexOf('+');
         String mavenVersion = buildSeparator < 0 ? version : version.substring(0, buildSeparator);
-        return """
-            Програма обробляє дані про товари з CSV-файлу.
-
-            Обов'язкові параметри:
-                --input <шлях>   шлях до вхідного CSV-файлу
-                --output <шлях>  шлях до файлу звіту
-
-            Додаткові параметри:
-                --help           показати цю довідку
-                --version        показати версію програми
-
-            Приклад запуску:
-                java -jar target/kzp-labv25-chyvantukh-%s-all.jar \\
-                        --input data/input.csv --output data/report.txt
-            """.formatted(mavenVersion);
+        return String.join("%n", List.of(
+                "Програма обробляє дані про товари з CSV-файлу.",
+                "",
+                "Обов'язкові параметри:",
+                "    --input <шлях>   шлях до вхідного CSV-файлу",
+                "    --output <шлях>  шлях до файлу звіту",
+                "",
+                "Додаткові параметри:",
+                "    --help           показати цю довідку",
+                "    --version        показати версію програми",
+                "",
+                "Приклад запуску:",
+                "    java -jar target/kzp-labv25-chyvantukh-%s-all.jar \\",
+                "            --input data/input.csv --output data/report.txt"))
+                .formatted(mavenVersion);
     }
 
     private MainController() {

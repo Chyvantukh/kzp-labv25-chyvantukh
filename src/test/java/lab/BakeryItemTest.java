@@ -19,7 +19,7 @@ class BakeryItemTest {
 
     @Test
     void equals_shouldTreatItemsWithSameValuesAsEqual() {
-        BakeryItem first = new Bread("Хліб", 500, 22.5, 38.75);
+        BakeryItem first = Bread.create("Хліб", 500, 22.5, 38.75);
         BakeryItem second = BakeryItem.fromCsv("Хліб;хлiб;500;22.5;38.75");
 
         assertEquals(first, second);
@@ -45,7 +45,7 @@ class BakeryItemTest {
     @Test
     void hashSet_shouldRecognizeEquivalentItems() {
         Set<BakeryItem> items = new HashSet<>();
-        items.add(new Bread("Хліб", 500, 22.5, 38.75));
+        items.add(Bread.create("Хліб", 500, 22.5, 38.75));
         items.add(BakeryItem.fromCsv("Хліб;хлiб;500;22.5;38.75"));
 
         assertTrue(items.contains(BakeryItem.fromCsv("Хліб;хлiб;500;22.5;38.75")));
@@ -66,15 +66,21 @@ class BakeryItemTest {
     }
 
     @Test
-    void breadConstructor_shouldAlwaysUseBreadKind() {
-        Bread bread = new Bread("Хліб", 500, 22.5, 38.75);
+    void breadFactory_shouldAlwaysUseBreadKind() {
+        Bread bread = Bread.create("Хліб", 500, 22.5, 38.75);
 
         assertEquals(BakeryItem.BakeryKind.BREAD, bread.getKind());
     }
 
     @Test
+    void breadFactory_shouldRejectInvalidSharedFields() {
+        assertThrows(IllegalArgumentException.class,
+                () -> Bread.create(" ", 500, 22.5, 38.75));
+    }
+
+    @Test
     void bread_shouldCalculateMarginAfterManufacturingCost() {
-        Bread bread = new Bread("Хліб", 500, 100, 130);
+        Bread bread = Bread.create("Хліб", 500, 100, 130);
 
         assertEquals(25.0, bread.calculateMargin(), 1e-9);
     }
@@ -90,20 +96,26 @@ class BakeryItemTest {
     }
 
     @Test
-    void pastryConstructor_shouldRejectBreadKind() {
+    void pastryFactory_shouldRejectBreadKind() {
         assertThrows(IllegalArgumentException.class,
-                () -> new Pastry("Хліб", BakeryItem.BakeryKind.BREAD, 500, 22.5, 38.75));
+                () -> Pastry.create("Хліб", BakeryItem.BakeryKind.BREAD, 500, 22.5, 38.75));
     }
 
     @Test
-    void pastryConstructor_shouldRejectNullKind() {
+    void pastryFactory_shouldRejectNullKind() {
         assertThrows(IllegalArgumentException.class,
-                () -> new Pastry("Виріб", null, 100, 10, 20));
+                () -> Pastry.create("Виріб", null, 100, 10, 20));
+    }
+
+    @Test
+    void pastryFactory_shouldRejectInvalidSharedFields() {
+        assertThrows(IllegalArgumentException.class,
+                () -> Pastry.create("Виріб", BakeryItem.BakeryKind.COOKIE, -1, 10, 20));
     }
 
     @Test
     void pastry_shouldCalculateMarginAfterPackagingCost() {
-        Pastry pastry = new Pastry("Печиво", BakeryItem.BakeryKind.COOKIE, 100, 100, 130);
+        Pastry pastry = Pastry.create("Печиво", BakeryItem.BakeryKind.COOKIE, 100, 100, 130);
 
         assertEquals(20.0, pastry.calculateMargin(), 1e-9);
     }
@@ -159,22 +171,22 @@ class BakeryItemTest {
     }
 
     private static Stream<Arguments> itemsWithDifferentValues() {
-        BakeryItem baseline = new Bread("Хліб", 500, 22.5, 38.75);
+        BakeryItem baseline = Bread.create("Хліб", 500, 22.5, 38.75);
         return Stream.of(
                 Arguments.of(
-                        baseline, new Bread("Багет", 500, 22.5, 38.75)),
+                        baseline, Bread.create("Багет", 500, 22.5, 38.75)),
                 Arguments.of(
-                        baseline, new Bread("Хліб", 501, 22.5, 38.75)),
+                        baseline, Bread.create("Хліб", 501, 22.5, 38.75)),
                 Arguments.of(
-                        baseline, new Bread("Хліб", 500, 22.6, 38.75)),
+                        baseline, Bread.create("Хліб", 500, 22.6, 38.75)),
                 Arguments.of(
-                        baseline, new Bread("Хліб", 500, 22.5, 38.76)),
+                        baseline, Bread.create("Хліб", 500, 22.5, 38.76)),
                 Arguments.of(
-                        baseline, new Pastry("Хліб", BakeryItem.BakeryKind.COOKIE,
+                        baseline, Pastry.create("Хліб", BakeryItem.BakeryKind.COOKIE,
                                 500, 22.5, 38.75)),
                 Arguments.of(
-                        new Pastry("Виріб", BakeryItem.BakeryKind.COOKIE, 100, 10, 20),
-                        new Pastry("Виріб", BakeryItem.BakeryKind.PIE, 100, 10, 20))
+                        Pastry.create("Виріб", BakeryItem.BakeryKind.COOKIE, 100, 10, 20),
+                        Pastry.create("Виріб", BakeryItem.BakeryKind.PIE, 100, 10, 20))
         );
     }
 

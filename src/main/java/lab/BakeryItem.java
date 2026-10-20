@@ -71,16 +71,17 @@ public abstract sealed class BakeryItem permits Bread, Pastry {
     }
 
     /**
-     * Створює базовий виріб із перевіреними спільними властивостями.
+     * Перевіряє спільні інваріанти виробу перед створенням об'єкта.
      *
-     * @param name назва виробу; не може бути порожньою
-     * @param kind категорія виробу; не може бути {@code null}
-     * @param weightG вага виробу в грамах; не може бути від'ємною
-     * @param cost собівартість виробу; має бути скінченною та невід'ємною
-     * @param price ціна виробу; має бути скінченною та невід'ємною
-     * @throws IllegalArgumentException якщо будь-який аргумент не відповідає вимогам
+     * @param name назва виробу
+     * @param kind категорія виробу
+     * @param weightG вага виробу в грамах
+     * @param cost собівартість виробу
+     * @param price ціна виробу
+     * @return перевірені дані для конструктора підтипу
+     * @throws IllegalArgumentException якщо значення порушує інваріанти виробу
      */
-    protected BakeryItem(String name, BakeryKind kind, int weightG, double cost, double price) {
+    static ValidatedData validate(String name, BakeryKind kind, int weightG, double cost, double price) {
         if (name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("Назва товару не може бути порожньою!");
         }
@@ -103,11 +104,32 @@ public abstract sealed class BakeryItem permits Bread, Pastry {
             throw new IllegalArgumentException("поле \"Цiна\" не може бути вiд'ємним");
         }
 
-        this.name = name;
-        this.kind = kind;
-        this.weightG = weightG;
-        this.cost = cost;
-        this.price = price;
+        return new ValidatedData(name, kind, weightG, cost, price);
+    }
+
+    /**
+     * Ініціалізує базовий стан даними, перевіреними фабрикою підтипу.
+     *
+     * @param data перевірені значення виробу
+     */
+    protected BakeryItem(ValidatedData data) {
+        this.name = data.name();
+        this.kind = data.kind();
+        this.weightG = data.weightG();
+        this.cost = data.cost();
+        this.price = data.price();
+    }
+
+    /**
+     * Перевірені значення, потрібні для створення підтипу виробу.
+     *
+     * @param name назва виробу
+     * @param kind категорія виробу
+     * @param weightG вага виробу в грамах
+     * @param cost собівартість виробу
+     * @param price ціна виробу
+     */
+    record ValidatedData(String name, BakeryKind kind, int weightG, double cost, double price) {
     }
 
     /**
@@ -243,9 +265,9 @@ public abstract sealed class BakeryItem permits Bread, Pastry {
 
         String name = fields[0].trim();
         if (kind == BakeryKind.BREAD) {
-            return new Bread(name, weightG, cost, price);
+            return Bread.create(name, weightG, cost, price);
         }
-        return new Pastry(name, kind, weightG, cost, price);
+        return Pastry.create(name, kind, weightG, cost, price);
     }
 
     /**

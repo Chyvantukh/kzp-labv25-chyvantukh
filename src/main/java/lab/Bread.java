@@ -6,16 +6,23 @@ package lab;
 public final class Bread extends BakeryItem {
     private static final double MANUFACTURING_COST_RATE = 0.05;
 
+    private Bread(BakeryItem.ValidatedData data) {
+        super(data);
+    }
+
     /**
-     * Створює хліб із заданими назвою, вагою, собівартістю та ціною.
+     * Створює хліб після перевірки його спільних властивостей.
      *
      * @param name назва виробу
      * @param weightG вага виробу в грамах
      * @param cost собівартість виробу
      * @param price ціна виробу
+     * @return створений хліб
+     * @throws IllegalArgumentException якщо будь-яке значення порушує інваріанти виробу
      */
-    public Bread(String name, int weightG, double cost, double price) {
-        super(name, BakeryItem.BakeryKind.BREAD, weightG, cost, price);
+    public static Bread create(String name, int weightG, double cost, double price) {
+        return new Bread(BakeryItem.validate(
+                name, BakeryItem.BakeryKind.BREAD, weightG, cost, price));
     }
 
     /**

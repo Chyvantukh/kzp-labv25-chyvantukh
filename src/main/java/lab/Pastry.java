@@ -6,20 +6,25 @@ package lab;
 public final class Pastry extends BakeryItem {
     private static final double PACKAGING_COST_RATE = 0.10;
 
+    private Pastry(BakeryItem.ValidatedData data) {
+        super(data);
+    }
+
     /**
-     * Створює виріб не хлібної категорії із заданими характеристиками.
+     * Створює виріб не хлібної категорії після перевірки його властивостей.
      *
      * @param name назва виробу
      * @param kind категорія виробу; не може бути {@code null} або {@link BakeryItem.BakeryKind#BREAD}
      * @param weightG вага виробу в грамах
      * @param cost собівартість виробу
      * @param price ціна виробу
-     * @throws IllegalArgumentException якщо категорія є {@code null} або
-     *                                  {@link BakeryItem.BakeryKind#BREAD}, або інші значення
-     *                                  не відповідають вимогам базового класу
+     * @return створений виріб
+     * @throws IllegalArgumentException якщо категорія чи інше значення порушує інваріанти
      */
-    public Pastry(String name, BakeryItem.BakeryKind kind, int weightG, double cost, double price) {
-        super(name, requirePastryKind(kind), weightG, cost, price);
+    public static Pastry create(
+            String name, BakeryItem.BakeryKind kind, int weightG, double cost, double price) {
+        BakeryItem.BakeryKind pastryKind = requirePastryKind(kind);
+        return new Pastry(BakeryItem.validate(name, pastryKind, weightG, cost, price));
     }
 
     /**
