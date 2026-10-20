@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -5,7 +6,7 @@
 
     <groupId>com.example</groupId>
     <artifactId>kzp-labv25-chyvantukh</artifactId>
-    <version>1.0.0</version>
+    <version>3.0.0</version>
     <packaging>jar</packaging>
     <name>kzp-labv25-chyvantukh</name>
 
@@ -15,6 +16,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <junit.jupiter.version>5.10.2</junit.jupiter.version>
         <main.class>lab.Main</main.class>
+        <build.number>local</build.number>
     </properties>
 
     <dependencies>
@@ -27,6 +29,14 @@
     </dependencies>
 
     <build>
+        <!-- Додано фільтрування ресурсів (підстановка змінних у version.properties) -->
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -74,7 +84,8 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <shadedArtifactAttached>false</shadedArtifactAttached>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <shadedClassifierName>all</shadedClassifierName>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>${main.class}</mainClass>

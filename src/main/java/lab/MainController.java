@@ -13,18 +13,17 @@ import java.util.Locale;
 
 /**
  * Контролер обробки аргументів, CSV-даних і формування звіту.
- *
- * <p>Програма читає записи з CSV-файлу, шлях до якого передається через {@code --input},
- * перевіряє їхню коректність,
- * відкидає некоректні рядки, обчислює агреговані показники та створює звіт у
- * стандартному виводі та у файлі, переданому через {@code --output}.</p>
  */
 public final class MainController {
     private static final int EXIT_SUCCESS = 0;
     private static final int EXIT_INPUT_ERROR = 1;
     private static final int EXIT_OUTPUT_ERROR = 2;
-    private static final String VERSION = "1.0.0";
-    private static final String HELP_MESSAGE = """
+
+    private static String helpMessage() {
+        String version = BuildInfo.version();
+        int buildSeparator = version.indexOf('+');
+        String mavenVersion = buildSeparator < 0 ? version : version.substring(0, buildSeparator);
+        return """
             Програма обробляє дані про товари з CSV-файлу.
 
             Обов'язкові параметри:
@@ -36,30 +35,22 @@ public final class MainController {
                 --version        показати версію програми
 
             Приклад запуску:
-                java -jar target/kzp-labv25-chyvantukh-1.0.0.jar \\
+                java -jar target/kzp-labv25-chyvantukh-%s-all.jar \\
                         --input data/input.csv --output data/report.txt
-            """;
+            """.formatted(mavenVersion);
+    }
 
     private MainController() {
     }
 
-    /**
-     * Обробляє аргументи, вхідний файл і формування звіту.
-     *
-     * @param args аргументи командного рядка; {@code --input} і {@code --output}
-     *             задають шляхи файлів, {@code --help} виводить довідку,
-     *             {@code --version} виводить версію програми
-     * @return код завершення: {@code 0} для успішного виконання, {@code 1} для помилки читання
-     *         або {@code 2} для помилки запису
-     */
     static int run(String[] args) {
         if (args.length == 1 && "--help".equals(args[0])) {
-            System.out.print(HELP_MESSAGE);
+            System.out.print(helpMessage());
             return EXIT_SUCCESS;
         }
 
         if (args.length == 1 && "--version".equals(args[0])) {
-            System.out.println(VERSION);
+            System.out.println(BuildInfo.version());
             return EXIT_SUCCESS;
         }
 
@@ -150,16 +141,6 @@ public final class MainController {
         return EXIT_SUCCESS;
     }
 
-    /**
-     * Парсить аргументи командного рядка та повертає шлях до вхідного й вихідного файлів.
-     *
-     * <p>Програма допускає лише пари {@code --input <шлях>} і {@code --output <шлях>};
-     * повторення або відсутність обов'язкових параметрів вважається помилкою.</p>
-     *
-     * @param args аргументи командного рядка, передані під час запуску програми
-     * @return об'єкт із шляхами до вхідного й вихідного файлів, або {@code null}, якщо
-     *         аргументи некоректні
-     */
     private static CommandLineArguments parseArguments(String[] args) {
         Path inputPath = null;
         Path outputPath = null;
@@ -195,14 +176,6 @@ public final class MainController {
         return new CommandLineArguments(inputPath, outputPath);
     }
 
-    /**
-     * Розбирає один рядок CSV-файлу та перетворює його на об'єкт товару.
-     *
-     * @param line рядок даних для аналізу
-     * @param lineNumber номер рядка у файлі
-     * @param errorLogs список помилок, які треба зафіксувати при валідації
-     * @return об'єкт товару, якщо рядок коректний; інакше {@code null}
-     */
     private static BakeryItem parseLine(String line, int lineNumber, List<String> errorLogs) {
         try {
             return BakeryItem.fromCsv(line);
@@ -212,12 +185,6 @@ public final class MainController {
         }
     }
 
-    /**
-     * Обчислює загальну вагу та середню маржу коректних товарів за один прохід.
-     *
-     * @param products список товарів
-     * @return пара підсумкових значень: вага та середня маржа
-     */
     private static WeightMargin calculateWeightMargin(List<BakeryItem> products) {
         double totalWeight = 0;
         double totalMargin = 0;
@@ -230,12 +197,6 @@ public final class MainController {
         return new WeightMargin(totalWeight, averageMargin);
     }
 
-    /**
-     * Знаходить товар з найбільшою ціною серед коректних записів.
-     *
-     * @param products список товарів
-     * @return товар з максимальною ціною або {@code null}, якщо список порожній
-     */
     private static BakeryItem findMostExpensiveProduct(List<BakeryItem> products) {
         if (products.isEmpty()) {
             return null;
@@ -250,21 +211,9 @@ public final class MainController {
         return maxProduct;
     }
 
-    /**
-     * Внутрішній контейнер для підсумкових показників обробки товарів.
-     *
-     * @param totalWeight сумарна вага усіх коректних товарів у грамах
-     * @param averageMargin середній маржинальний прибуток у гривнях
-     */
     private record WeightMargin(double totalWeight, double averageMargin) {
     }
 
-    /**
-     * Внутрішній контейнер для шляхів до вхідного та вихідного файлів.
-     *
-     * @param inputPath шлях до CSV-файлу з даними
-     * @param outputPath шлях до файлу зі звітом
-     */
     private record CommandLineArguments(Path inputPath, Path outputPath) {
     }
 }
