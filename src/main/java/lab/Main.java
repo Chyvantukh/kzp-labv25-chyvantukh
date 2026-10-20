@@ -228,7 +228,7 @@ public class Main {
         double totalMargin = 0;
         for (BakeryItem item : products) {
             totalWeight += item.getWeightG();
-            totalMargin += (item.getPrice() - item.getCost());
+            totalMargin += item.calculateMargin();
         }
 
         double averageMargin = products.isEmpty() ? 0.0 : totalMargin / products.size();

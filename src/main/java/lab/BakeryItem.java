@@ -21,14 +21,24 @@ public abstract sealed class BakeryItem permits Bread, Pastry {
      * Категорії виробів, що підтримуються у вхідному CSV.
      */
     public enum BakeryKind {
+        /** Хліб; значення у CSV — {@code хлiб}. */
         BREAD("хлiб"),
+        /** Пиріг; значення у CSV — {@code пирiг}. */
         PIE("пирiг"),
+        /** Кондитерський виріб; значення у CSV — {@code кондитерський}. */
         CONFECTIONERY("кондитерський"),
+        /** Печиво; значення у CSV — {@code печиво}. */
         COOKIE("печиво"),
+        /** Інша випічка; значення у CSV — {@code випiчка}. */
         BAKED_GOOD("випiчка");
 
         private final String csvValue;
 
+        /**
+         * Створює категорію з її текстовим значенням у CSV.
+         *
+         * @param csvValue текстове значення категорії у CSV
+         */
         BakeryKind(String csvValue) {
             this.csvValue = csvValue;
         }
@@ -42,6 +52,13 @@ public abstract sealed class BakeryItem permits Bread, Pastry {
             return csvValue;
         }
 
+        /**
+         * Знаходить категорію за її текстовим значенням у CSV.
+         *
+         * @param value текстове значення категорії
+         * @return відповідна категорія
+         * @throws IllegalArgumentException якщо значення не відповідає жодній категорії
+         */
         private static BakeryKind fromCsv(String value) {
             for (BakeryKind kind : values()) {
                 if (kind.csvValue.equals(value)) {
@@ -136,6 +153,13 @@ public abstract sealed class BakeryItem permits Bread, Pastry {
     public double getPrice() {
         return price;
     }
+
+    /**
+     * Обчислює маржу виробу з урахуванням додаткових витрат його підтипу.
+     *
+     * @return ціна мінус собівартість і додаткові витрати
+     */
+    public abstract double calculateMargin();
 
     /**
      * Створює виріб із CSV-рядка та визначає його конкретний підтип.
