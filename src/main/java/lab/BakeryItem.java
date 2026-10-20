@@ -1,6 +1,7 @@
 package lab;
 
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Спільні властивості хлібобулочних виробів, зчитаних із CSV-файлу.
@@ -160,6 +161,37 @@ public abstract sealed class BakeryItem permits Bread, Pastry {
      * @return ціна мінус собівартість і додаткові витрати
      */
     public abstract double calculateMargin();
+
+    /**
+     * Порівнює вироби за всіма спільними значеннями сутності.
+     *
+     * @param other об'єкт для порівняння
+     * @return {@code true}, якщо збігаються назва, категорія, вага, собівартість і ціна
+     */
+    @Override
+    public final boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof BakeryItem item)) {
+            return false;
+        }
+        return weightG == item.weightG
+                && Double.compare(cost, item.cost) == 0
+                && Double.compare(price, item.price) == 0
+                && name.equals(item.name)
+                && kind == item.kind;
+    }
+
+    /**
+     * Повертає хеш-код, узгоджений з рівністю виробів.
+     *
+     * @return хеш-код назви, категорії, ваги, собівартості й ціни
+     */
+    @Override
+    public final int hashCode() {
+        return Objects.hash(name, kind, weightG, cost, price);
+    }
 
     /**
      * Створює виріб із CSV-рядка та визначає його конкретний підтип.
