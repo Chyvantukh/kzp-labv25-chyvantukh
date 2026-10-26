@@ -10,13 +10,17 @@ import java.util.Objects;
  * створює відповідний підтип {@link Bread} або {@link Pastry}.</p>
  */
 public abstract sealed class BakeryItem permits Bread, Pastry {
-    private static final String[] FIELD_NAMES = {"Назва", "Тип", "Вага", "Собiвартiсть", "Цiна"};
+    private static final String[] FIELD_NAMES = {
+        "Назва", "Тип", "Вага", "Собiвартiсть", "Цiна", "Час випiкання"
+    };
+    private static final int LEGACY_FIELD_COUNT = FIELD_NAMES.length - 1;
 
     private final String name;
     private final BakeryKind kind;
     private final int weightG;
     private final double cost;
     private final double price;
+    private final double bakingTimeMinutes;
 
     /**
      * Категорії виробів, що підтримуються у вхідному CSV.
@@ -78,10 +82,12 @@ public abstract sealed class BakeryItem permits Bread, Pastry {
      * @param weightG вага виробу в грамах
      * @param cost собівартість виробу
      * @param price ціна виробу
+     * @param bakingTimeMinutes час випікання у хвилинах
      * @return перевірені дані для конструктора підтипу
      * @throws IllegalArgumentException якщо значення порушує інваріанти виробу
      */
-    static ValidatedData validate(String name, BakeryKind kind, int weightG, double cost, double price) {
+    static ValidatedData validate(
+            String name, BakeryKind kind, int weightG, double cost, double price, double bakingTimeMinutes) {
         if (name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("Назва товару не може бути порожньою!");
         }
@@ -103,8 +109,14 @@ public abstract sealed class BakeryItem permits Bread, Pastry {
         if (price < 0) {
             throw new IllegalArgumentException("поле \"Цiна\" не може бути вiд'ємним");
         }
+        if (!Double.isFinite(bakingTimeMinutes)) {
+            throw new IllegalArgumentException("поле \"Час випiкання\" має нечислове значення");
+        }
+        if (bakingTimeMinutes < 0) {
+            throw new IllegalArgumentException("поле \"Час випiкання\" не може бути вiд'ємним");
+        }
 
-        return new ValidatedData(name, kind, weightG, cost, price);
+        return new ValidatedData(name, kind, weightG, cost, price, bakingTimeMinutes);
     }
 
     /**
@@ -118,6 +130,7 @@ public abstract sealed class BakeryItem permits Bread, Pastry {
         this.weightG = data.weightG();
         this.cost = data.cost();
         this.price = data.price();
+        this.bakingTimeMinutes = data.bakingTimeMinutes();
     }
 
     /**
@@ -128,8 +141,10 @@ public abstract sealed class BakeryItem permits Bread, Pastry {
      * @param weightG вага виробу в грамах
      * @param cost собівартість виробу
      * @param price ціна виробу
+     * @param bakingTimeMinutes час випікання у хвилинах
      */
-    record ValidatedData(String name, BakeryKind kind, int weightG, double cost, double price) {
+    record ValidatedData(
+            String name, BakeryKind kind, int weightG, double cost, double price, double bakingTimeMinutes) {
     }
 
     /**
@@ -178,6 +193,15 @@ public abstract sealed class BakeryItem permits Bread, Pastry {
     }
 
     /**
+     * Повертає час випікання у хвилинах.
+     *
+     * @return час випікання; для рядків старого CSV-формату — {@code 0.0}
+     */
+    public double getBakingTimeMinutes() {
+        return bakingTimeMinutes;
+    }
+
+    /**
      * Обчислює маржу виробу з урахуванням додаткових витрат його підтипу.
      *
      * @return ціна мінус собівартість і додаткові витрати
@@ -188,7 +212,7 @@ public abstract sealed class BakeryItem permits Bread, Pastry {
      * Порівнює вироби за всіма спільними значеннями сутності.
      *
      * @param other об'єкт для порівняння
-     * @return {@code true}, якщо збігаються назва, категорія, вага, собівартість і ціна
+     * @return {@code true}, якщо збігаються всі властивості виробів
      */
     @Override
     public final boolean equals(Object other) {
@@ -201,6 +225,7 @@ public abstract sealed class BakeryItem permits Bread, Pastry {
         return weightG == item.weightG
                 && Double.compare(cost, item.cost) == 0
                 && Double.compare(price, item.price) == 0
+                && Double.compare(bakingTimeMinutes, item.bakingTimeMinutes) == 0
                 && name.equals(item.name)
                 && kind == item.kind;
     }
@@ -208,17 +233,17 @@ public abstract sealed class BakeryItem permits Bread, Pastry {
     /**
      * Повертає хеш-код, узгоджений з рівністю виробів.
      *
-     * @return хеш-код назви, категорії, ваги, собівартості й ціни
+     * @return хеш-код усіх властивостей виробу
      */
     @Override
     public final int hashCode() {
-        return Objects.hash(name, kind, weightG, cost, price);
+        return Objects.hash(name, kind, weightG, cost, price, bakingTimeMinutes);
     }
 
     /**
      * Створює виріб із CSV-рядка та визначає його конкретний підтип.
      *
-     * @param line рядок у форматі «Назва;Тип;Вага;Собівартість;Ціна»
+     * @param line рядок старого формату з п'ятьма полями або нового формату з часом випікання
      * @return створений об'єкт {@link Bread} або {@link Pastry}
      * @throws IllegalArgumentException якщо рядок або одне з його полів некоректне
      */
@@ -228,17 +253,17 @@ public abstract sealed class BakeryItem permits Bread, Pastry {
         }
 
         String[] fields = line.split(";", -1);
-        if (fields.length != FIELD_NAMES.length) {
-            if (fields.length < FIELD_NAMES.length) {
-                for (int index = 0; index < FIELD_NAMES.length; index++) {
-                    if (index >= fields.length || fields[index].trim().isEmpty()) {
-                        throw new IllegalArgumentException(
-                                "вiдсутнє поле \"%s\"".formatted(FIELD_NAMES[index]));
-                    }
+        if (fields.length < LEGACY_FIELD_COUNT) {
+            for (int index = 0; index < LEGACY_FIELD_COUNT; index++) {
+                if (index >= fields.length || fields[index].trim().isEmpty()) {
+                    throw new IllegalArgumentException(
+                            "вiдсутнє поле \"%s\"".formatted(FIELD_NAMES[index]));
                 }
             }
-            throw new IllegalArgumentException("забагато полiв (очiкувалося %d, знайдено %d)"
-                    .formatted(FIELD_NAMES.length, fields.length));
+        }
+        if (fields.length > FIELD_NAMES.length) {
+            throw new IllegalArgumentException("забагато полiв (очiкувалося 6, знайдено %d)"
+                    .formatted(fields.length));
         }
 
         for (int index = 1; index < fields.length; index++) {
@@ -251,6 +276,7 @@ public abstract sealed class BakeryItem permits Bread, Pastry {
         int weightG;
         double cost;
         double price;
+        double bakingTimeMinutes = 0.0;
         String currentField = FIELD_NAMES[2];
         try {
             weightG = Integer.parseInt(fields[2].trim());
@@ -258,6 +284,10 @@ public abstract sealed class BakeryItem permits Bread, Pastry {
             cost = Double.parseDouble(fields[3].trim().replace(',', '.'));
             currentField = FIELD_NAMES[4];
             price = Double.parseDouble(fields[4].trim().replace(',', '.'));
+            if (fields.length == FIELD_NAMES.length) {
+                currentField = FIELD_NAMES[5];
+                bakingTimeMinutes = Double.parseDouble(fields[5].trim().replace(',', '.'));
+            }
         } catch (NumberFormatException exception) {
             throw new IllegalArgumentException(
                     "поле \"%s\" має нечислове значення".formatted(currentField), exception);
@@ -265,9 +295,9 @@ public abstract sealed class BakeryItem permits Bread, Pastry {
 
         String name = fields[0].trim();
         if (kind == BakeryKind.BREAD) {
-            return Bread.create(name, weightG, cost, price);
+            return Bread.create(name, weightG, cost, price, bakingTimeMinutes);
         }
-        return Pastry.create(name, kind, weightG, cost, price);
+        return Pastry.create(name, kind, weightG, cost, price, bakingTimeMinutes);
     }
 
     /**

@@ -26,8 +26,24 @@ public final class Bread extends BakeryItem {
      * @throws IllegalArgumentException якщо будь-яке значення порушує інваріанти виробу
      */
     public static Bread create(String name, int weightG, double cost, double price) {
+        return create(name, weightG, cost, price, 0.0);
+    }
+
+    /**
+     * Створює хліб із заданим часом випікання після перевірки властивостей.
+     *
+     * @param name назва виробу
+     * @param weightG вага виробу в грамах
+     * @param cost собівартість виробу
+     * @param price ціна виробу
+     * @param bakingTimeMinutes час випікання у хвилинах
+     * @return створений хліб
+     * @throws IllegalArgumentException якщо будь-яке значення порушує інваріанти виробу
+     */
+    public static Bread create(
+            String name, int weightG, double cost, double price, double bakingTimeMinutes) {
         return new Bread(BakeryItem.validate(
-                name, BakeryItem.BakeryKind.BREAD, weightG, cost, price));
+                name, BakeryItem.BakeryKind.BREAD, weightG, cost, price, bakingTimeMinutes));
     }
 
     /**

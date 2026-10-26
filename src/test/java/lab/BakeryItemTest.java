@@ -62,7 +62,15 @@ class BakeryItemTest {
         assertEquals(500, item.getWeightG());
         assertEquals(22.5, item.getCost());
         assertEquals(38.75, item.getPrice());
+        assertEquals(0.0, item.getBakingTimeMinutes());
         assertEquals("Хліб (38.75 грн)", item.toString());
+    }
+
+    @Test
+    void fromCsv_shouldReadBakingTimeFromSixthField() {
+        BakeryItem item = BakeryItem.fromCsv("Хліб;хлiб;500;22.50;38.75;13,25");
+
+        assertEquals(13.25, item.getBakingTimeMinutes());
     }
 
     @Test
@@ -70,6 +78,17 @@ class BakeryItemTest {
         Bread bread = Bread.create("Хліб", 500, 22.5, 38.75);
 
         assertEquals(BakeryItem.BakeryKind.BREAD, bread.getKind());
+    }
+
+    @Test
+    void bakingTime_shouldBeIncludedInEqualityAndHashCode() {
+        BakeryItem first = Bread.create("Хліб", 500, 22.5, 38.75, 12.5);
+        BakeryItem equal = BakeryItem.fromCsv("Хліб;хлiб;500;22.5;38.75;12.5");
+        BakeryItem differentTime = Bread.create("Хліб", 500, 22.5, 38.75, 13.0);
+
+        assertEquals(first, equal);
+        assertEquals(first.hashCode(), equal.hashCode());
+        assertNotEquals(first, differentTime);
     }
 
     @Test
@@ -182,6 +201,8 @@ class BakeryItemTest {
                 Arguments.of(
                         baseline, Bread.create("Хліб", 500, 22.5, 38.76)),
                 Arguments.of(
+                        baseline, Bread.create("Хліб", 500, 22.5, 38.75, 1.0)),
+                Arguments.of(
                         baseline, Pastry.create("Хліб", BakeryItem.BakeryKind.COOKIE,
                                 500, 22.5, 38.75)),
                 Arguments.of(
@@ -193,7 +214,7 @@ class BakeryItemTest {
     private static Stream<Arguments> invalidFieldCounts() {
         return Stream.of(
                 Arguments.of("Товар;хлiб;100;10", "вiдсутнє поле"),
-                Arguments.of("Товар;хлiб;100;10;20;30", "забагато полiв")
+                Arguments.of("Товар;хлiб;100;10;20;30;40", "забагато полiв")
         );
     }
 
@@ -204,7 +225,8 @@ class BakeryItemTest {
                 Arguments.of("Товар;хлiб;100;abc;20", "Собiвартiсть"),
                 Arguments.of("Товар;хлiб;100;10;abc", "Цiна"),
                 Arguments.of("Товар;хлiб;100;NaN;20", "нечислове значення"),
-                Arguments.of("Товар;хлiб;100;10;Infinity", "нечислове значення")
+                Arguments.of("Товар;хлiб;100;10;Infinity", "нечислове значення"),
+                Arguments.of("Товар;хлiб;100;10;20;нечисло", "Час випiкання")
         );
     }
 
@@ -217,7 +239,9 @@ class BakeryItemTest {
                 Arguments.of("Товар;хлiб;100;-1;20", "Собiвартiсть"),
                 Arguments.of("Товар;хлiб;100;10;-1", "Цiна"),
                 Arguments.of("Товар;хлiб;100;Infinity;20", "Собiвартiсть"),
-                Arguments.of("Товар;хлiб;100;10;NaN", "Цiна")
+                Arguments.of("Товар;хлiб;100;10;NaN", "Цiна"),
+                Arguments.of("Товар;хлiб;100;10;20;-1", "Час випiкання"),
+                Arguments.of("Товар;хлiб;100;10;20;Infinity", "Час випiкання")
         );
     }
 
@@ -226,7 +250,8 @@ class BakeryItemTest {
                 Arguments.of("Товар;;100;10;20", "Тип"),
                 Arguments.of("Товар;хлiб;;10;20", "Вага"),
                 Arguments.of("Товар;хлiб;100;;20", "Собiвартiсть"),
-                Arguments.of("Товар;хлiб;100;10;", "Цiна")
+                Arguments.of("Товар;хлiб;100;10;", "Цiна"),
+                Arguments.of("Товар;хлiб;100;10;20;", "Час випiкання")
         );
     }
 
