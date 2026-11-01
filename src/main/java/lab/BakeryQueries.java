@@ -1,11 +1,13 @@
 package lab;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.IntSummaryStatistics;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -55,6 +57,46 @@ public final class BakeryQueries {
             names.add(Objects.requireNonNull(product, "products must not contain null").getName());
         }
         return names;
+    }
+
+    /**
+     * Повертає перший виріб із точною відповідністю назви.
+     *
+     * @param products коректні вироби у початковому порядку
+     * @param name назва для пошуку
+     * @return перший виріб із відповідною назвою або {@link Optional#empty()}
+     * @throws NullPointerException якщо список, назва або елемент є {@code null}
+     */
+    public static Optional<BakeryItem> findByName(List<BakeryItem> products, String name) {
+        Objects.requireNonNull(products, "products must not be null");
+        Objects.requireNonNull(name, "name must not be null");
+
+        return products.stream()
+                .map(product -> Objects.requireNonNull(product, "products must not contain null"))
+                .filter(product -> product.getName().equals(name))
+                .findFirst();
+    }
+
+    /**
+     * Повертає до п'яти виробів із найбільшою маржею.
+     *
+     * <p>За однакової маржі вироби впорядковуються за назвою за зростанням.
+     * Якщо маржа й назва однакові, зберігається початковий порядок.</p>
+     *
+     * @param products коректні вироби у початковому порядку
+     * @return список із не більш ніж п'яти виробів
+     * @throws NullPointerException якщо список або його елемент є {@code null}
+     */
+    public static List<BakeryItem> topFiveByMargin(List<BakeryItem> products) {
+        Objects.requireNonNull(products, "products must not be null");
+
+        return products.stream()
+                .map(product -> Objects.requireNonNull(product, "products must not contain null"))
+                .sorted(Comparator.comparingDouble(BakeryItem::calculateMargin)
+                        .reversed()
+                        .thenComparing(BakeryItem::getName))
+                .limit(5)
+                .toList();
     }
 
     /**
