@@ -28,8 +28,31 @@ public final class Pastry extends BakeryItem {
      */
     public static Pastry create(
             String name, BakeryItem.BakeryKind kind, int weightG, double cost, double price) {
+        return create(name, kind, weightG, cost, price, 0.0);
+    }
+
+    /**
+     * Створює виріб не хлібної категорії з часом випікання.
+     *
+     * @param name назва виробу
+     * @param kind категорія виробу; не може бути {@code null} або {@link BakeryItem.BakeryKind#BREAD}
+     * @param weightG вага виробу в грамах
+     * @param cost собівартість виробу
+     * @param price ціна виробу
+     * @param bakingTimeMinutes час випікання у хвилинах
+     * @return створений виріб
+     * @throws IllegalArgumentException якщо категорія чи інше значення порушує інваріанти
+     */
+    public static Pastry create(
+            String name,
+            BakeryItem.BakeryKind kind,
+            int weightG,
+            double cost,
+            double price,
+            double bakingTimeMinutes) {
         BakeryItem.BakeryKind pastryKind = requirePastryKind(kind);
-        return new Pastry(BakeryItem.validate(name, pastryKind, weightG, cost, price));
+        return new Pastry(BakeryItem.validate(
+                name, pastryKind, weightG, cost, price, bakingTimeMinutes));
     }
 
     /**

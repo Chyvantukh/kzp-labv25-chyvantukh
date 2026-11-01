@@ -107,9 +107,9 @@ public final class MainController {
         } else {
             for (BakeryItem item : validProducts) {
                 sb.append(String.format(Locale.ROOT,
-                        "Назва = %-15s | Тип = %-10s | Вага = %4dг | Собiвартiсть = %6.2f | Цiна = %6.2f%n",
+                        "Назва = %-15s | Тип = %-10s | Вага = %4dг | Собiвартiсть = %6.2f | Цiна = %6.2f | Час випiкання = %6.2f хв%n",
                         item.getName(), item.getKind().csvValue(), item.getWeightG(),
-                        item.getCost(), item.getPrice()));
+                        item.getCost(), item.getPrice(), item.getBakingTimeMinutes()));
             }
         }
 
