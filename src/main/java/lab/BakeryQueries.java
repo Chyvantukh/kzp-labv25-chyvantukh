@@ -32,14 +32,10 @@ public final class BakeryQueries {
             throw new IllegalArgumentException("Поріг маржі має бути скінченним числом.");
         }
 
-        List<BakeryItem> filtered = new ArrayList<>();
-        for (BakeryItem product : products) {
-            BakeryItem item = Objects.requireNonNull(product, "products must not contain null");
-            if (item.calculateMargin() > threshold) {
-                filtered.add(item);
-            }
-        }
-        return filtered;
+        return products.stream()
+                .map(product -> Objects.requireNonNull(product, "products must not contain null"))
+                .filter(product -> product.calculateMargin() > threshold)
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     /**
@@ -52,11 +48,10 @@ public final class BakeryQueries {
     public static List<String> toNames(List<BakeryItem> products) {
         Objects.requireNonNull(products, "products must not be null");
 
-        List<String> names = new ArrayList<>(products.size());
-        for (BakeryItem product : products) {
-            names.add(Objects.requireNonNull(product, "products must not contain null").getName());
-        }
-        return names;
+        return products.stream()
+                .map(product -> Objects.requireNonNull(product, "products must not contain null"))
+                .map(BakeryItem::getName)
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     /**
