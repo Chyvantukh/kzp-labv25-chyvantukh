@@ -9,6 +9,7 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -144,6 +145,82 @@ class MainTest {
         assertTrue(reportContents.contains("Загальна вага: 0 г"));
         assertTrue(reportContents.contains("Середнiй маржинальний прибуток: 0.00 грн"));
         assertEquals(reportContents + System.lineSeparator(), output.toString(StandardCharsets.UTF_8));
+    }
+
+    @Test
+    void run_shouldGenerateCompleteReportForEmptyInput() throws Exception {
+        Path input = temporaryDirectory.resolve("empty.csv");
+        Path report = temporaryDirectory.resolve("report.txt");
+        Files.writeString(input, "", StandardCharsets.UTF_8);
+
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        try {
+            System.setOut(new PrintStream(output, true, StandardCharsets.UTF_8));
+            assertEquals(0, MainController.run(new String[]{
+                    "--input", input.toString(), "--output", report.toString()
+            }));
+        } finally {
+            System.setOut(originalOut);
+        }
+
+        String expectedReport = String.join(System.lineSeparator(),
+                "=== УСПiШНО ЗАВАНТАЖЕНi ТОВАРИ (0) ===",
+                "Не знайдено жодного коректного товару.",
+                "",
+                "=== ПОМИЛКОВi ТОВАРИ (0) ===",
+                "Помилок пiд час обробки не виявлено.",
+                "",
+                "=== Предметний обрахунок ===",
+                "Загальна вага: 0 г",
+                "Середнiй маржинальний прибуток: 0.00 грн",
+                "Найдорожчий товар: відсутній");
+
+        assertEquals(expectedReport, Files.readString(report, StandardCharsets.UTF_8));
+        assertEquals("%s%s".formatted(expectedReport, System.lineSeparator()),
+                output.toString(StandardCharsets.UTF_8));
+    }
+
+    @Test
+    void run_shouldKeepFirstProductWhenHighestPricesAreEqual() throws Exception {
+        Path input = temporaryDirectory.resolve("products-with-equal-prices.csv");
+        Path report = temporaryDirectory.resolve("report.txt");
+        Files.writeString(input, """
+                Перший;хлiб;100;10;20
+                Другий;печиво;100;10;20
+                """, StandardCharsets.UTF_8);
+
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        try {
+            System.setOut(new PrintStream(output, true, StandardCharsets.UTF_8));
+            assertEquals(0, MainController.run(new String[]{
+                    "--input", input.toString(), "--output", report.toString()
+            }));
+        } finally {
+            System.setOut(originalOut);
+        }
+
+        String separator = System.lineSeparator();
+        String expectedReport = String.join(separator,
+                "=== УСПiШНО ЗАВАНТАЖЕНi ТОВАРИ (2) ===",
+                String.format(Locale.ROOT,
+                        "Назва = %-15s | Тип = %-10s | Вага = %4dг | Собiвартiсть = %6.2f | Цiна = %6.2f | Час випiкання = %6.2f хв",
+                        "Перший", "хлiб", 100, 10.0, 20.0, 0.0),
+                String.format(Locale.ROOT,
+                        "Назва = %-15s | Тип = %-10s | Вага = %4dг | Собiвартiсть = %6.2f | Цiна = %6.2f | Час випiкання = %6.2f хв",
+                        "Другий", "печиво", 100, 10.0, 20.0, 0.0),
+                "",
+                "=== ПОМИЛКОВi ТОВАРИ (0) ===",
+                "Помилок пiд час обробки не виявлено.",
+                "",
+                "=== Предметний обрахунок ===",
+                "Загальна вага: 200 г",
+                "Середнiй маржинальний прибуток: 9.25 грн",
+                "Найдорожчий товар: Перший (20.00 грн)");
+
+        assertEquals(expectedReport, Files.readString(report, StandardCharsets.UTF_8));
+        assertEquals("%s%s".formatted(expectedReport, separator), output.toString(StandardCharsets.UTF_8));
     }
 
     @Test
