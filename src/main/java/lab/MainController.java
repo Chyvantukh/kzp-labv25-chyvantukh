@@ -222,13 +222,12 @@ public final class MainController {
      * @return загальна вага та середня маржа; для порожнього списку маржа дорівнює нулю
      */
     private static WeightMargin calculateWeightMargin(List<BakeryItem> products) {
-        double totalWeight = 0;
-        double totalMargin = 0;
-        for (BakeryItem item : products) {
-            totalWeight += item.getWeightG();
-            totalMargin += item.calculateMargin();
-        }
-
+        double totalWeight = products.stream()
+                .mapToDouble(BakeryItem::getWeightG)
+                .reduce(0.0, Double::sum);
+        double totalMargin = products.stream()
+                .mapToDouble(BakeryItem::calculateMargin)
+                .reduce(0.0, Double::sum);
         double averageMargin = products.isEmpty() ? 0.0 : totalMargin / products.size();
         return new WeightMargin(totalWeight, averageMargin);
     }
@@ -240,17 +239,10 @@ public final class MainController {
      * @return найдорожчий товар або {@code null}, якщо список порожній
      */
     private static BakeryItem findMostExpensiveProduct(List<BakeryItem> products) {
-        if (products.isEmpty()) {
-            return null;
-        }
-
-        BakeryItem maxProduct = products.get(0);
-        for (BakeryItem item : products) {
-            if (item.getPrice() > maxProduct.getPrice()) {
-                maxProduct = item;
-            }
-        }
-        return maxProduct;
+        return products.stream()
+                .reduce((mostExpensive, candidate) ->
+                        candidate.getPrice() > mostExpensive.getPrice() ? candidate : mostExpensive)
+                .orElse(null);
     }
 
     /**
