@@ -73,7 +73,7 @@ Windows PowerShell:
 ```powershell
 .\mvnw.cmd verify
 .\mvnw.cmd package
-java -jar target/kzp-labv25-chyvantukh-4.0.0-all.jar --input data/input.csv --output data/report.txt
+java -jar target/kzp-labv25-chyvantukh-4.0.1-all.jar --input data/input.csv --output data/report.txt
 ```
 
 Windows Command Prompt:
@@ -81,7 +81,7 @@ Windows Command Prompt:
 ```cmd
 mvnw.cmd verify
 mvnw.cmd package
-java -jar target/kzp-labv25-chyvantukh-4.0.0-all.jar --input data/input.csv --output data/report.txt
+java -jar target/kzp-labv25-chyvantukh-4.0.1-all.jar --input data/input.csv --output data/report.txt
 ```
 
 macOS та Ubuntu:
@@ -89,14 +89,14 @@ macOS та Ubuntu:
 ```bash
 ./mvnw verify
 ./mvnw package
-java -jar target/kzp-labv25-chyvantukh-4.0.0-all.jar --input data/input.csv --output data/report.txt
+java -jar target/kzp-labv25-chyvantukh-4.0.1-all.jar --input data/input.csv --output data/report.txt
 ```
 
 Довідка та версія:
 
 ```text
-java -jar target/kzp-labv25-chyvantukh-4.0.0-all.jar --help
-java -jar target/kzp-labv25-chyvantukh-4.0.0-all.jar --version
+java -jar target/kzp-labv25-chyvantukh-4.0.1-all.jar --help
+java -jar target/kzp-labv25-chyvantukh-4.0.1-all.jar --version
 ```
 
 Коди завершення: `0` — успіх, `1` — помилка аргументів або читання, `2` — помилка запису звіту.

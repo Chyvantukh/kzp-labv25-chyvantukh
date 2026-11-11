@@ -5,7 +5,7 @@
 - Предметна область: обробка даних про хлібобулочні вироби.
 - Номер варіанта: 25.
 - Операційна система: Windows.
-- Версія проєкту: `4.0.0`.
+- Версія проєкту: `4.0.1`.
 - Репозиторій: [kzp-labv25-chyvantukh](https://github.com/Chyvantukh/kzp-labv25-chyvantukh).
 
 ## 2. Мета роботи
@@ -99,7 +99,7 @@
 
 ## 11. Інфраструктура
 
-Проєкт використовує Maven Wrapper, Java 21, JUnit 5, SpotBugs і Maven Shade Plugin. Версія в `pom.xml` — `4.0.0`; головний клас JAR — `lab.Main`, classifier виконуваного JAR — `all`.
+Проєкт використовує Maven Wrapper, Java 21, JUnit 5, SpotBugs і Maven Shade Plugin. Версія в `pom.xml` — `4.0.1`; головний клас JAR — `lab.Main`, classifier виконуваного JAR — `all`.
 
 Windows PowerShell:
 
@@ -107,7 +107,7 @@ Windows PowerShell:
 .\mvnw.cmd test
 .\mvnw.cmd verify
 .\mvnw.cmd package
-java -jar target/kzp-labv25-chyvantukh-4.0.0-all.jar --input data/input.csv --output data/report.txt
+java -jar target/kzp-labv25-chyvantukh-4.0.1-all.jar --input data/input.csv --output data/report.txt
 ```
 
 macOS та Ubuntu:
@@ -116,7 +116,7 @@ macOS та Ubuntu:
 ./mvnw test
 ./mvnw verify
 ./mvnw package
-java -jar target/kzp-labv25-chyvantukh-4.0.0-all.jar --input data/input.csv --output data/report.txt
+java -jar target/kzp-labv25-chyvantukh-4.0.1-all.jar --input data/input.csv --output data/report.txt
 ```
 
 CI у [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) запускає `clean verify` на Java 21 для Ubuntu, Windows і macOS, перевіряє параметр `--version` виконуваного JAR і публікує JAR як артефакт. Останній наданий запуск: [GitHub Actions](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/actions/runs/41332187133).
