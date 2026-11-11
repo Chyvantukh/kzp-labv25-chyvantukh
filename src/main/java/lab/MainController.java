@@ -216,10 +216,10 @@ public final class MainController {
     }
 
     /**
-     * Підсумовує вагу та обчислює середню маржу товарів.
+     * Потоково підсумовує вагу та обчислює середню маржу товарів.
      *
      * @param products коректні товари
-     * @return загальна вага та середня маржа; для порожнього списку маржа дорівнює нулю
+     * @return загальна вага та середня маржа; для порожнього списку обидва значення дорівнюють нулю
      */
     private static WeightMargin calculateWeightMargin(List<BakeryItem> products) {
         double totalWeight = products.stream()
@@ -233,10 +233,10 @@ public final class MainController {
     }
 
     /**
-     * Знаходить коректний товар із найбільшою ціною.
+     * Потоково знаходить коректний товар із найбільшою ціною.
      *
      * @param products коректні товари
-     * @return найдорожчий товар або {@code null}, якщо список порожній
+     * @return перший товар із найбільшою ціною або {@code null}, якщо список порожній
      */
     private static BakeryItem findMostExpensiveProduct(List<BakeryItem> products) {
         return products.stream()
