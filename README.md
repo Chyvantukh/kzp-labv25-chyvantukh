@@ -44,8 +44,8 @@
 |---|---|---|---|
 | Список коректних товарів | `BakeryItem` (`Bread` або `Pastry`) | Вхідний CSV після перевірки кожного рядка | `List<BakeryItem>` у початковому порядку; містить лише прийняті записи. |
 | Список помилок | `String` | Вхідний CSV під час перевірки рядків | `List<String>` у порядку появи; повідомлення містять номер рядка й причину відхилення. |
-| Загальна вага та середня маржа | `BakeryItem` | Список коректних товарів | `MainController.WeightMargin(double totalWeight, double averageMargin)`. Вага — сума `weightG`; середня маржа — сума `calculateMargin()` / кількість товарів. Для порожнього списку обидва значення дорівнюють нулю. |
-| Найдорожчий товар | `BakeryItem` | Список коректних товарів | `BakeryItem` з найбільшою ціною або `null`, якщо список порожній. Якщо ціни однакові, результатом є перший товар у файлі. |
+| Загальна вага та середня маржа | `BakeryItem` | Список коректних товарів | `MainController.WeightMargin(double totalWeight, double averageMargin)`. Потокові обчислення підсумовують `weightG` і `calculateMargin()`; середня маржа — сума маржі / кількість товарів. Для порожнього списку загальна вага й середня маржа дорівнюють нулю. |
+| Найдорожчий товар | `BakeryItem` | Список коректних товарів | Потокове зведення повертає `BakeryItem` із найбільшою ціною або `null`, якщо список порожній. Якщо найвища ціна однакова, результатом є перший такий товар у файлі. |
 | Фільтр за маржею понад поріг | `BakeryItem` | `List<BakeryItem>` коректних товарів і скінченний поріг | `BakeryQueries.filterByMarginAbove(...)` повертає `List<BakeryItem>` лише з товарами, для яких `calculateMargin() > threshold`. Рівність порогу не проходить; початковий порядок зберігається. |
 | Перетворення товарів на список назв | `BakeryItem` | `List<BakeryItem>` коректних товарів | `BakeryQueries.toNames(...)` повертає `List<String>` з `getName()` у початковому порядку; повторювані назви зберігаються. |
 
@@ -64,6 +64,8 @@
 
 Незмінний контракт поточного звіту: показувати кількості коректних і помилкових рядків, список прийнятих товарів у порядку CSV, список помилок у порядку CSV, загальну вагу, середню маржу та найдорожчий товар. Грошові показники й час випікання форматуються з двома десятковими знаками, вага — у грамах без дробової частини. Якщо коректних товарів немає, загальна вага має бути `0 г`, середня маржа — `0.00 грн`, найдорожчий товар — `відсутній`; блок топ-5 не є частиною поточного звіту.
 
+Загальна вага й середня маржа обчислюються через Stream API та `reduce`; найдорожчий товар визначається потоковим зведенням. Порожній список дає нульові агрегати й відсутнього найдорожчого товару; за однакової найвищої ціни зберігається перший товар у початковому порядку.
+
 ## Збірка та запуск
 
 Потрібна Java 21.
@@ -73,7 +75,7 @@ Windows PowerShell:
 ```powershell
 .\mvnw.cmd verify
 .\mvnw.cmd package
-java -jar target/kzp-labv25-chyvantukh-4.0.0-all.jar --input data/input.csv --output data/report.txt
+java -jar target/kzp-labv25-chyvantukh-4.0.1-all.jar --input data/input.csv --output data/report.txt
 ```
 
 Windows Command Prompt:
@@ -81,7 +83,7 @@ Windows Command Prompt:
 ```cmd
 mvnw.cmd verify
 mvnw.cmd package
-java -jar target/kzp-labv25-chyvantukh-4.0.0-all.jar --input data/input.csv --output data/report.txt
+java -jar target/kzp-labv25-chyvantukh-4.0.1-all.jar --input data/input.csv --output data/report.txt
 ```
 
 macOS та Ubuntu:
@@ -89,14 +91,14 @@ macOS та Ubuntu:
 ```bash
 ./mvnw verify
 ./mvnw package
-java -jar target/kzp-labv25-chyvantukh-4.0.0-all.jar --input data/input.csv --output data/report.txt
+java -jar target/kzp-labv25-chyvantukh-4.0.1-all.jar --input data/input.csv --output data/report.txt
 ```
 
 Довідка та версія:
 
 ```text
-java -jar target/kzp-labv25-chyvantukh-4.0.0-all.jar --help
-java -jar target/kzp-labv25-chyvantukh-4.0.0-all.jar --version
+java -jar target/kzp-labv25-chyvantukh-4.0.1-all.jar --help
+java -jar target/kzp-labv25-chyvantukh-4.0.1-all.jar --version
 ```
 
 Коди завершення: `0` — успіх, `1` — помилка аргументів або читання, `2` — помилка запису звіту.
