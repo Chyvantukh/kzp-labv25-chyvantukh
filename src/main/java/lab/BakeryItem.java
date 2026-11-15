@@ -15,17 +15,23 @@ public abstract sealed class BakeryItem permits Bread, Pastry {
     };
     private static final int LEGACY_FIELD_COUNT = FIELD_NAMES.length - 1;
 
+    @Csv.CsvColumn("Назва")
     private final String name;
+    @Csv.CsvColumn("Тип")
     private final BakeryKind kind;
+    @Csv.CsvColumn("Вага")
     private final int weightG;
+    @Csv.CsvColumn("Собiвартiсть")
     private final double cost;
+    @Csv.CsvColumn("Цiна")
     private final double price;
+    @Csv.CsvColumn("Час випiкання")
     private final double bakingTimeMinutes;
 
     /**
      * Категорії виробів, що підтримуються у вхідному CSV.
      */
-    public enum BakeryKind {
+    public enum BakeryKind implements Csv.Value {
         /** Хліб; значення у CSV — {@code хлiб}. */
         BREAD("хлiб"),
         /** Пиріг; значення у CSV — {@code пирiг}. */
@@ -54,6 +60,11 @@ public abstract sealed class BakeryItem permits Bread, Pastry {
          * @return значення категорії з CSV
          */
         public String csvValue() {
+            return csvValue;
+        }
+
+        @Override
+        public String toCsvValue() {
             return csvValue;
         }
 
