@@ -120,10 +120,10 @@ public final class Csv {
          *
          * @param path шлях до документа CSV
          * @return незмінний список записів у порядку їх появи в документі
-         * @throws IOException якщо не вдалося прочитати файл
+         * @throws FileAccessException якщо не вдалося прочитати файл
          * @throws FileFormatException якщо заголовок, кількість полів у рядку або лапкування CSV некоректні
          */
-        public List<T> read(Path path) throws IOException {
+        public List<T> read(Path path) {
             Objects.requireNonNull(path, "path");
             try {
                 String document = Files.readString(path, StandardCharsets.UTF_8);
@@ -209,9 +209,9 @@ public final class Csv {
          *
          * @param path шлях до файлу призначення
          * @param records записи для експорту
-         * @throws IOException якщо не вдалося записати файл
+         * @throws FileAccessException якщо не вдалося записати файл
          */
-        public void write(Path path, Iterable<? extends T> records) throws IOException {
+        public void write(Path path, Iterable<? extends T> records) {
             Objects.requireNonNull(path, "path");
             try {
                 Files.writeString(path, toCsv(records), StandardCharsets.UTF_8);
