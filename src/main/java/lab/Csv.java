@@ -125,35 +125,40 @@ public final class Csv {
          */
         public List<T> read(Path path) throws IOException {
             Objects.requireNonNull(path, "path");
-            String document = Files.readString(path, StandardCharsets.UTF_8);
-            List<List<String>> rows = parseRows(document);
-            if (rows.isEmpty()) {
-                throw new FileFormatException("CSV-файл не містить заголовка");
-            }
-
-            List<String> expectedHeaders = columns.stream().map(ColumnMetadata::header).toList();
-            List<String> actualHeaders = rows.getFirst();
-            if (!expectedHeaders.equals(actualHeaders)) {
-                throw new FileFormatException("Заголовок CSV не відповідає очікуваному: %s"
-                        .formatted(String.join(";", expectedHeaders)));
-            }
-
-            List<T> records = new ArrayList<>(rows.size() - 1);
-            for (int rowIndex = 1; rowIndex < rows.size(); rowIndex++) {
-                List<String> values = rows.get(rowIndex);
-                if (values.size() != columns.size()) {
-                    throw new FileFormatException("Рядок %d: очікувалося %d полів, знайдено %d"
-                            .formatted(rowIndex + 1, columns.size(), values.size()));
+            try {
+                String document = Files.readString(path, StandardCharsets.UTF_8);
+                List<List<String>> rows = parseRows(document);
+                if (rows.isEmpty()) {
+                    throw new FileFormatException("CSV-файл не містить заголовка");
                 }
 
-                Map<String, String> row = new LinkedHashMap<>();
-                for (int columnIndex = 0; columnIndex < columns.size(); columnIndex++) {
-                    row.put(columns.get(columnIndex).header(), values.get(columnIndex));
+                List<String> expectedHeaders = columns.stream().map(ColumnMetadata::header).toList();
+                List<String> actualHeaders = rows.getFirst();
+                if (!expectedHeaders.equals(actualHeaders)) {
+                    throw new FileFormatException("Заголовок CSV не відповідає очікуваному: %s"
+                            .formatted(String.join(";", expectedHeaders)));
                 }
-                T record = recordFactory.apply(Map.copyOf(row));
-                records.add(Objects.requireNonNull(record, "recordFactory result"));
+
+                List<T> records = new ArrayList<>(rows.size() - 1);
+                for (int rowIndex = 1; rowIndex < rows.size(); rowIndex++) {
+                    List<String> values = rows.get(rowIndex);
+                    if (values.size() != columns.size()) {
+                        throw new FileFormatException("Рядок %d: очікувалося %d полів, знайдено %d"
+                                .formatted(rowIndex + 1, columns.size(), values.size()));
+                    }
+
+                    Map<String, String> row = new LinkedHashMap<>();
+                    for (int columnIndex = 0; columnIndex < columns.size(); columnIndex++) {
+                        row.put(columns.get(columnIndex).header(), values.get(columnIndex));
+                    }
+                    T record = recordFactory.apply(Map.copyOf(row));
+                    records.add(Objects.requireNonNull(record, "recordFactory result"));
+                }
+                return List.copyOf(records);
+            } catch (IOException exception) {
+                throw new FileAccessException(
+                        "Не вдалося прочитати CSV-файл %s".formatted(path), exception);
             }
-            return List.copyOf(records);
         }
     }
 
@@ -208,7 +213,12 @@ public final class Csv {
          */
         public void write(Path path, Iterable<? extends T> records) throws IOException {
             Objects.requireNonNull(path, "path");
-            Files.writeString(path, toCsv(records), StandardCharsets.UTF_8);
+            try {
+                Files.writeString(path, toCsv(records), StandardCharsets.UTF_8);
+            } catch (IOException exception) {
+                throw new FileAccessException(
+                        "Не вдалося записати CSV-файл %s".formatted(path), exception);
+            }
         }
 
         private void appendHeader(StringBuilder csv) {
