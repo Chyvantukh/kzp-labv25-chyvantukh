@@ -1,6 +1,7 @@
 package lab;
 
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -15,17 +16,23 @@ public abstract sealed class BakeryItem permits Bread, Pastry {
     };
     private static final int LEGACY_FIELD_COUNT = FIELD_NAMES.length - 1;
 
+    @Csv.CsvColumn("Назва")
     private final String name;
+    @Csv.CsvColumn("Тип")
     private final BakeryKind kind;
+    @Csv.CsvColumn("Вага")
     private final int weightG;
+    @Csv.CsvColumn("Собiвартiсть")
     private final double cost;
+    @Csv.CsvColumn("Цiна")
     private final double price;
+    @Csv.CsvColumn("Час випiкання")
     private final double bakingTimeMinutes;
 
     /**
      * Категорії виробів, що підтримуються у вхідному CSV.
      */
-    public enum BakeryKind {
+    public enum BakeryKind implements Csv.Value {
         /** Хліб; значення у CSV — {@code хлiб}. */
         BREAD("хлiб"),
         /** Пиріг; значення у CSV — {@code пирiг}. */
@@ -54,6 +61,11 @@ public abstract sealed class BakeryItem permits Bread, Pastry {
          * @return значення категорії з CSV
          */
         public String csvValue() {
+            return csvValue;
+        }
+
+        @Override
+        public String toCsvValue() {
             return csvValue;
         }
 
@@ -298,6 +310,40 @@ public abstract sealed class BakeryItem permits Bread, Pastry {
             return Bread.create(name, weightG, cost, price, bakingTimeMinutes);
         }
         return Pastry.create(name, kind, weightG, cost, price, bakingTimeMinutes);
+    }
+
+    /**
+     * Створює хлібобулочний виріб зі значень, зіставлених із заголовками CSV.
+     *
+     * @param columns значення CSV, зіставлені з точними заголовками стовпців
+     * @return створений хліб або кондитерський виріб
+     * @throws IllegalArgumentException якщо обов'язкове значення відсутнє або некоректне
+     */
+    public static BakeryItem fromCsvColumns(Map<String, String> columns) {
+        Objects.requireNonNull(columns, "columns");
+        String name = requiredCsvValue(columns, "Назва");
+        BakeryKind kind = BakeryKind.fromCsv(requiredCsvValue(columns, "Тип").trim());
+        try {
+            int weightG = Integer.parseInt(requiredCsvValue(columns, "Вага").trim());
+            double cost = Double.parseDouble(requiredCsvValue(columns, "Собiвартiсть").trim().replace(',', '.'));
+            double price = Double.parseDouble(requiredCsvValue(columns, "Цiна").trim().replace(',', '.'));
+            double bakingTimeMinutes =
+                    Double.parseDouble(requiredCsvValue(columns, "Час випiкання").trim().replace(',', '.'));
+            if (kind == BakeryKind.BREAD) {
+                return Bread.create(name, weightG, cost, price, bakingTimeMinutes);
+            }
+            return Pastry.create(name, kind, weightG, cost, price, bakingTimeMinutes);
+        } catch (NumberFormatException exception) {
+            throw new IllegalArgumentException("Числове CSV-поле має некоректне значення", exception);
+        }
+    }
+
+    private static String requiredCsvValue(Map<String, String> columns, String header) {
+        String value = columns.get(header);
+        if (value == null || value.isEmpty()) {
+            throw new IllegalArgumentException("Відсутнє значення CSV-поля \"%s\"".formatted(header));
+        }
+        return value;
     }
 
     /**
