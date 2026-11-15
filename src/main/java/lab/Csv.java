@@ -12,8 +12,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 
 /**
  * Метадані та операції, пов'язані з CSV.
@@ -46,6 +49,112 @@ public final class Csv {
          * @return представлення у форматі CSV
          */
         String toCsvValue();
+    }
+
+    private record ColumnMetadata(Field field, String header) {
+    }
+
+    private static List<ColumnMetadata> findColumns(Class<?> recordType) {
+        List<Field> fields = new ArrayList<>();
+        for (Class<?> currentType = recordType;
+                currentType != null && currentType != Object.class;
+                currentType = currentType.getSuperclass()) {
+            for (Field field : currentType.getDeclaredFields()) {
+                if (field.isAnnotationPresent(CsvColumn.class) && !Modifier.isStatic(field.getModifiers())) {
+                    fields.add(field);
+                }
+            }
+        }
+        fields.sort(Comparator.comparing(Field::getName)
+                .thenComparing(field -> field.getDeclaringClass().getName()));
+
+        List<ColumnMetadata> columns = new ArrayList<>(fields.size());
+        for (Field field : fields) {
+            try {
+                if (!field.trySetAccessible()) {
+                    throw new ReflectionException(
+                            "Не вдалося отримати доступ до CSV-поля %s".formatted(field.getName()));
+                }
+            } catch (SecurityException exception) {
+                throw new ReflectionException(
+                        "Не вдалося отримати доступ до CSV-поля %s".formatted(field.getName()), exception);
+            }
+            columns.add(new ColumnMetadata(field, field.getAnnotation(CsvColumn.class).value()));
+        }
+
+        List<String> headers = columns.stream().map(ColumnMetadata::header).toList();
+        if (headers.stream().distinct().count() != headers.size()) {
+            throw new IllegalArgumentException(
+                    "Тип %s має повторювані заголовки CSV".formatted(recordType.getName()));
+        }
+        return List.copyOf(columns);
+    }
+
+    /**
+     * Імпортує записи з документа CSV із роздільником-крапкою з комою, використовуючи анотовані заголовки.
+     *
+     * @param <T> тип імпортованого запису
+     */
+    public static final class Importer<T> {
+        private final List<ColumnMetadata> columns;
+        private final Function<Map<String, String>, ? extends T> recordFactory;
+
+        /**
+         * Створює імпортер, який зіставляє значення кожного рядка з анотованими заголовками.
+         *
+         * @param recordType тип, анотовані поля якого визначають очікуваний заголовок CSV
+         * @param recordFactory фабричний метод, що створює запис із пар «заголовок — значення»
+         */
+        public Importer(Class<T> recordType, Function<Map<String, String>, ? extends T> recordFactory) {
+            Objects.requireNonNull(recordType, "recordType");
+            columns = findColumns(recordType);
+            if (columns.isEmpty()) {
+                throw new IllegalArgumentException(
+                        "Тип %s не містить анотованих CSV-полів".formatted(recordType.getName()));
+            }
+            this.recordFactory = Objects.requireNonNull(recordFactory, "recordFactory");
+        }
+
+        /**
+         * Зчитує та розбирає документ CSV у кодуванні UTF-8.
+         *
+         * @param path шлях до документа CSV
+         * @return незмінний список записів у порядку їх появи в документі
+         * @throws IOException якщо не вдалося прочитати файл
+         * @throws FileFormatException якщо заголовок, кількість полів у рядку або лапкування CSV некоректні
+         */
+        public List<T> read(Path path) throws IOException {
+            Objects.requireNonNull(path, "path");
+            String document = Files.readString(path, StandardCharsets.UTF_8);
+            List<List<String>> rows = parseRows(document);
+            if (rows.isEmpty()) {
+                throw new FileFormatException("CSV-файл не містить заголовка");
+            }
+
+            List<String> expectedHeaders = columns.stream().map(ColumnMetadata::header).toList();
+            List<String> actualHeaders = rows.getFirst();
+            if (!expectedHeaders.equals(actualHeaders)) {
+                throw new FileFormatException("Заголовок CSV не відповідає очікуваному: %s"
+                        .formatted(String.join(";", expectedHeaders)));
+            }
+
+            List<T> records = new ArrayList<>(rows.size() - 1);
+            for (int rowIndex = 1; rowIndex < rows.size(); rowIndex++) {
+                List<String> values = rows.get(rowIndex);
+                if (values.size() != columns.size()) {
+                    throw new FileFormatException("Рядок %d: очікувалося %d полів, знайдено %d"
+                            .formatted(rowIndex + 1, columns.size(), values.size()));
+                }
+
+                Map<String, String> row = new LinkedHashMap<>();
+                for (int columnIndex = 0; columnIndex < columns.size(); columnIndex++) {
+                    row.put(columns.get(columnIndex).header(), values.get(columnIndex));
+                }
+                T record = recordFactory.apply(Map.copyOf(row));
+                records.add(Objects.requireNonNull(record, "recordFactory result"));
+            }
+            return List.copyOf(records);
+        }
     }
 
     /**
@@ -102,36 +211,6 @@ public final class Csv {
             Files.writeString(path, toCsv(records), StandardCharsets.UTF_8);
         }
 
-        private static List<ColumnMetadata> findColumns(Class<?> recordType) {
-            List<Field> fields = new ArrayList<>();
-            for (Class<?> currentType = recordType;
-                    currentType != null && currentType != Object.class;
-                    currentType = currentType.getSuperclass()) {
-                for (Field field : currentType.getDeclaredFields()) {
-                    if (field.isAnnotationPresent(CsvColumn.class) && !Modifier.isStatic(field.getModifiers())) {
-                        fields.add(field);
-                    }
-                }
-            }
-            fields.sort(Comparator.comparing(Field::getName)
-                    .thenComparing(field -> field.getDeclaringClass().getName()));
-
-            List<ColumnMetadata> columns = new ArrayList<>(fields.size());
-            for (Field field : fields) {
-                try {
-                    if (!field.trySetAccessible()) {
-                        throw new ReflectionException(
-                                "Не вдалося отримати доступ до CSV-поля %s".formatted(field.getName()));
-                    }
-                } catch (SecurityException exception) {
-                    throw new ReflectionException(
-                            "Не вдалося отримати доступ до CSV-поля %s".formatted(field.getName()), exception);
-                }
-                columns.add(new ColumnMetadata(field, field.getAnnotation(CsvColumn.class).value()));
-            }
-            return List.copyOf(columns);
-        }
-
         private void appendHeader(StringBuilder csv) {
             for (int index = 0; index < columns.size(); index++) {
                 if (index > 0) {
@@ -178,8 +257,83 @@ public final class Csv {
             }
             return "\"%s\"".formatted(value.replace("\"", "\"\""));
         }
+    }
 
-        private record ColumnMetadata(Field field, String header) {
+    private static List<List<String>> parseRows(String document) {
+        List<List<String>> rows = new ArrayList<>();
+        List<String> row = new ArrayList<>();
+        StringBuilder field = new StringBuilder();
+        boolean inQuotes = false;
+        boolean afterQuote = false;
+
+        for (int index = 0; index < document.length(); index++) {
+            char character = document.charAt(index);
+            if (inQuotes) {
+                if (character == '"') {
+                    if (index + 1 < document.length() && document.charAt(index + 1) == '"') {
+                        field.append('"');
+                        index++;
+                    } else {
+                        inQuotes = false;
+                        afterQuote = true;
+                    }
+                } else {
+                    field.append(character);
+                }
+                continue;
+            }
+
+            if (afterQuote) {
+                if (character == ';') {
+                    row.add(field.toString());
+                    field.setLength(0);
+                    afterQuote = false;
+                } else if (character == '\r' || character == '\n') {
+                    row.add(field.toString());
+                    rows.add(List.copyOf(row));
+                    row.clear();
+                    field.setLength(0);
+                    afterQuote = false;
+                    if (character == '\r' && index + 1 < document.length()
+                            && document.charAt(index + 1) == '\n') {
+                        index++;
+                    }
+                } else {
+                    throw new FileFormatException(
+                            "Некоректний символ після закривальних лапок у CSV");
+                }
+                continue;
+            }
+
+            if (character == '"') {
+                if (field.length() > 0) {
+                    throw new FileFormatException("Лапки всередині незакритого поля CSV");
+                }
+                inQuotes = true;
+            } else if (character == ';') {
+                row.add(field.toString());
+                field.setLength(0);
+            } else if (character == '\r' || character == '\n') {
+                row.add(field.toString());
+                rows.add(List.copyOf(row));
+                row.clear();
+                field.setLength(0);
+                if (character == '\r' && index + 1 < document.length()
+                        && document.charAt(index + 1) == '\n') {
+                    index++;
+                }
+            } else {
+                field.append(character);
+            }
         }
+
+        if (inQuotes) {
+            throw new FileFormatException("Незакрите лапковане поле CSV");
+        }
+        if (afterQuote || field.length() > 0 || !row.isEmpty()) {
+            row.add(field.toString());
+            rows.add(List.copyOf(row));
+        }
+        return List.copyOf(rows);
     }
 }
