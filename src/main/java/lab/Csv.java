@@ -11,11 +11,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 /**
@@ -65,9 +65,6 @@ public final class Csv {
                 }
             }
         }
-        fields.sort(Comparator.comparing(Field::getName)
-                .thenComparing(field -> field.getDeclaringClass().getName()));
-
         List<ColumnMetadata> columns = new ArrayList<>(fields.size());
         for (Field field : fields) {
             try {
@@ -90,14 +87,11 @@ public final class Csv {
         return List.copyOf(columns);
     }
 
-    /**
-     * Імпортує записи з документа CSV із роздільником-крапкою з комою, використовуючи анотовані заголовки.
-     *
-     * @param <T> тип імпортованого запису
-     */
+    /** Імпортує записи з документа CSV, використовуючи анотовані заголовки. */
     public static final class Importer<T> {
         private final List<ColumnMetadata> columns;
         private final Function<Map<String, String>, ? extends T> recordFactory;
+        private final char delimiter;
 
         /**
          * Створює імпортер, який зіставляє значення кожного рядка з анотованими заголовками.
@@ -106,12 +100,28 @@ public final class Csv {
          * @param recordFactory фабричний метод, що створює запис із пар «заголовок — значення»
          */
         public Importer(Class<T> recordType, Function<Map<String, String>, ? extends T> recordFactory) {
+            this(recordType, ',', recordFactory);
+        }
+
+        /**
+         * Створює імпортер із заданим роздільником полів.
+         *
+         * @param recordType тип, анотовані поля якого визначають очікуваний заголовок CSV
+         * @param delimiter роздільник полів CSV
+         * @param recordFactory фабричний метод, що створює запис із пар «заголовок — значення»
+         */
+        public Importer(
+                Class<T> recordType, char delimiter, Function<Map<String, String>, ? extends T> recordFactory) {
             Objects.requireNonNull(recordType, "recordType");
             columns = findColumns(recordType);
             if (columns.isEmpty()) {
                 throw new IllegalArgumentException(
                         "Тип %s не містить анотованих CSV-полів".formatted(recordType.getName()));
             }
+            if (delimiter == '"' || delimiter == '\r' || delimiter == '\n') {
+                throw new IllegalArgumentException("Некоректний роздільник CSV");
+            }
+            this.delimiter = delimiter;
             this.recordFactory = Objects.requireNonNull(recordFactory, "recordFactory");
         }
 
@@ -124,10 +134,31 @@ public final class Csv {
          * @throws FileFormatException якщо заголовок, кількість полів у рядку або лапкування CSV некоректні
          */
         public List<T> read(Path path) {
+            return read(path, (recordNumber, exception) -> {
+                if (exception instanceof FileFormatException formatException) {
+                    throw new FileFormatException(
+                            "Рядок %d: %s".formatted(recordNumber + 1, formatException.getMessage()),
+                            formatException);
+                }
+                throw exception;
+            });
+        }
+
+        /**
+         * Reads records, sending malformed rows and model-validation failures to a handler.
+         *
+         * @param path path to the CSV document
+         * @param rowErrorHandler receives the 1-based data-record number and its error
+         * @return immutable valid records in document order
+         * @throws FileAccessException if the file cannot be read
+         * @throws FileFormatException if the header or CSV quoting is invalid
+         */
+        public List<T> read(Path path, BiConsumer<Integer, RuntimeException> rowErrorHandler) {
             Objects.requireNonNull(path, "path");
+            Objects.requireNonNull(rowErrorHandler, "rowErrorHandler");
             try {
                 String document = Files.readString(path, StandardCharsets.UTF_8);
-                List<List<String>> rows = parseRows(document);
+                List<List<String>> rows = parseRows(document, delimiter);
                 if (rows.isEmpty()) {
                     throw new FileFormatException("CSV-файл не містить заголовка");
                 }
@@ -136,23 +167,79 @@ public final class Csv {
                 List<String> actualHeaders = rows.getFirst();
                 if (!expectedHeaders.equals(actualHeaders)) {
                     throw new FileFormatException("Заголовок CSV не відповідає очікуваному: %s"
-                            .formatted(String.join(";", expectedHeaders)));
+                            .formatted(String.join(String.valueOf(delimiter), expectedHeaders)));
                 }
 
                 List<T> records = new ArrayList<>(rows.size() - 1);
                 for (int rowIndex = 1; rowIndex < rows.size(); rowIndex++) {
                     List<String> values = rows.get(rowIndex);
                     if (values.size() != columns.size()) {
-                        throw new FileFormatException("Рядок %d: очікувалося %d полів, знайдено %d"
-                                .formatted(rowIndex + 1, columns.size(), values.size()));
+                        String message = values.size() > columns.size()
+                                ? "забагато полiв (очiкувалося %d, знайдено %d)"
+                                        .formatted(columns.size(), values.size())
+                                : "очікувалося %d полів, знайдено %d".formatted(columns.size(), values.size());
+                        rowErrorHandler.accept(rowIndex, new FileFormatException(
+                                message));
+                        continue;
                     }
 
                     Map<String, String> row = new LinkedHashMap<>();
                     for (int columnIndex = 0; columnIndex < columns.size(); columnIndex++) {
                         row.put(columns.get(columnIndex).header(), values.get(columnIndex));
                     }
-                    T record = recordFactory.apply(Map.copyOf(row));
-                    records.add(Objects.requireNonNull(record, "recordFactory result"));
+                    try {
+                        T record = recordFactory.apply(Map.copyOf(row));
+                        records.add(Objects.requireNonNull(record, "recordFactory result"));
+                    } catch (IllegalArgumentException exception) {
+                        rowErrorHandler.accept(rowIndex, exception);
+                    }
+                }
+                return List.copyOf(records);
+            } catch (IOException exception) {
+                throw new FileAccessException(
+                        "Не вдалося прочитати CSV-файл %s".formatted(path), exception);
+            }
+        }
+
+        /**
+         * Reads a document without a header row.
+         *
+         * @param path path to the CSV document
+         * @param rowErrorHandler receives the 1-based line number and row error
+         * @return immutable valid records in document order
+         * @throws FileAccessException if the file cannot be read
+         * @throws FileFormatException if the CSV quoting is invalid
+         */
+        public List<T> readHeaderless(Path path, BiConsumer<Integer, RuntimeException> rowErrorHandler) {
+            Objects.requireNonNull(path, "path");
+            Objects.requireNonNull(rowErrorHandler, "rowErrorHandler");
+            try {
+                String document = Files.readString(path, StandardCharsets.UTF_8);
+                List<List<String>> rows = parseRows(document, delimiter);
+                List<T> records = new ArrayList<>(rows.size());
+
+                for (int rowIndex = 0; rowIndex < rows.size(); rowIndex++) {
+                    List<String> values = rows.get(rowIndex);
+                    if (values.size() != columns.size()) {
+                        String message = values.size() > columns.size()
+                                ? "забагато полiв (очiкувалося %d, знайдено %d)"
+                                        .formatted(columns.size(), values.size())
+                                : "очікувалося %d полів, знайдено %d"
+                                        .formatted(columns.size(), values.size());
+                        rowErrorHandler.accept(rowIndex, new FileFormatException(message));
+                        continue;
+                    }
+
+                    Map<String, String> row = new LinkedHashMap<>();
+                    for (int columnIndex = 0; columnIndex < columns.size(); columnIndex++) {
+                        row.put(columns.get(columnIndex).header(), values.get(columnIndex));
+                    }
+                    try {
+                        T record = recordFactory.apply(Map.copyOf(row));
+                        records.add(Objects.requireNonNull(record, "recordFactory result"));
+                    } catch (IllegalArgumentException exception) {
+                        rowErrorHandler.accept(rowIndex, exception);
+                    }
                 }
                 return List.copyOf(records);
             } catch (IOException exception) {
@@ -163,12 +250,13 @@ public final class Csv {
     }
 
     /**
-     * Експортує анотовані поля об'єкта у файл CSV з роздільником-крапкою з комою та кодуванням UTF-8.
+     * Експортує анотовані поля об'єкта у файл CSV з роздільником-комою та кодуванням UTF-8.
      *
      * @param <T> тип запису для експорту
      */
     public static final class Exporter<T> {
         private static final String RECORD_SEPARATOR = "\r\n";
+        private static final char FIELD_SEPARATOR = ',';
 
         private final List<ColumnMetadata> columns;
 
@@ -224,7 +312,7 @@ public final class Csv {
         private void appendHeader(StringBuilder csv) {
             for (int index = 0; index < columns.size(); index++) {
                 if (index > 0) {
-                    csv.append(';');
+                    csv.append(FIELD_SEPARATOR);
                 }
                 csv.append(escape(columns.get(index).header()));
             }
@@ -234,7 +322,7 @@ public final class Csv {
         private void appendRecord(StringBuilder csv, T record) {
             for (int index = 0; index < columns.size(); index++) {
                 if (index > 0) {
-                    csv.append(';');
+                    csv.append(FIELD_SEPARATOR);
                 }
                 csv.append(escape(readValue(columns.get(index).field(), record)));
             }
@@ -258,8 +346,7 @@ public final class Csv {
         }
 
         private static String escape(String value) {
-            if (value.indexOf(';') < 0
-                    && value.indexOf(',') < 0
+            if (value.indexOf(FIELD_SEPARATOR) < 0
                     && value.indexOf('"') < 0
                     && value.indexOf('\r') < 0
                     && value.indexOf('\n') < 0) {
@@ -269,7 +356,7 @@ public final class Csv {
         }
     }
 
-    private static List<List<String>> parseRows(String document) {
+    private static List<List<String>> parseRows(String document, char delimiter) {
         List<List<String>> rows = new ArrayList<>();
         List<String> row = new ArrayList<>();
         StringBuilder field = new StringBuilder();
@@ -294,7 +381,7 @@ public final class Csv {
             }
 
             if (afterQuote) {
-                if (character == ';') {
+                if (character == delimiter) {
                     row.add(field.toString());
                     field.setLength(0);
                     afterQuote = false;
@@ -320,7 +407,7 @@ public final class Csv {
                     throw new FileFormatException("Лапки всередині незакритого поля CSV");
                 }
                 inQuotes = true;
-            } else if (character == ';') {
+            } else if (character == delimiter) {
                 row.add(field.toString());
                 field.setLength(0);
             } else if (character == '\r' || character == '\n') {

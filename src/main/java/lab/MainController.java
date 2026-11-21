@@ -1,6 +1,5 @@
 package lab;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -80,22 +79,22 @@ public final class MainController {
         Repository<BakeryItem> productRepository = new InMemoryRepository<>();
         List<String> errorLogs = new ArrayList<>();
         StringBuilder sb = new StringBuilder();
-        int lineNumber = 0;
 
-        try (BufferedReader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
-            String line;
-
-            while ((line = reader.readLine()) != null) {
-                BakeryItem item = parseLine(line, ++lineNumber, errorLogs);
-                if (item != null) {
-                    productRepository.add(item);
-                }
+        Csv.Importer<BakeryItem> importer =
+                new Csv.Importer<>(BakeryItem.class, ',', BakeryItem::fromCsvColumns);
+        try {
+            importer.readHeaderless(file, (recordNumber, exception) -> errorLogs.add(
+                    "Рядок %d: %s".formatted(recordNumber + 1, exception.getMessage())))
+                    .forEach(productRepository::add);
+        } catch (FileAccessException exception) {
+            if (exception.getCause() instanceof NoSuchFileException) {
+                System.err.printf("Файл не знайдено за шляхом: %s%n", file.toAbsolutePath());
+            } else {
+                System.err.printf("Помилка читання файлу: %s%n", exception.getMessage());
             }
-        } catch (NoSuchFileException e) {
-            System.err.printf("Файл не знайдено за шляхом: %s%n", file.toAbsolutePath());
             return EXIT_INPUT_ERROR;
-        } catch (IOException e) {
-            System.err.printf("Помилка читання файлу: %s%n", e.getMessage());
+        } catch (FileFormatException exception) {
+            System.err.printf("Помилка читання файлу: %s%n", exception.getMessage());
             return EXIT_INPUT_ERROR;
         }
 
@@ -197,23 +196,6 @@ public final class MainController {
         }
 
         return new CommandLineArguments(inputPath, outputPath);
-    }
-
-    /**
-     * Перетворює CSV-рядок на товар або додає помилку до звіту.
-     *
-     * @param line рядок CSV
-     * @param lineNumber номер рядка у вхідному файлі
-     * @param errorLogs список повідомлень про некоректні рядки
-     * @return створений товар або {@code null}, якщо рядок не пройшов перевірку
-     */
-    private static BakeryItem parseLine(String line, int lineNumber, List<String> errorLogs) {
-        try {
-            return BakeryItem.fromCsv(line);
-        } catch (IllegalArgumentException exception) {
-            errorLogs.add("Рядок %d: %s".formatted(lineNumber, exception.getMessage()));
-            return null;
-        }
     }
 
     /**

@@ -18,7 +18,7 @@ public abstract sealed class BakeryItem permits Bread, Pastry {
 
     @Csv.CsvColumn("Назва")
     private final String name;
-    @Csv.CsvColumn("Тип")
+    @Csv.CsvColumn("Вид")
     private final BakeryKind kind;
     @Csv.CsvColumn("Вага")
     private final int weightG;
@@ -322,7 +322,7 @@ public abstract sealed class BakeryItem permits Bread, Pastry {
     public static BakeryItem fromCsvColumns(Map<String, String> columns) {
         Objects.requireNonNull(columns, "columns");
         String name = requiredCsvValue(columns, "Назва");
-        BakeryKind kind = BakeryKind.fromCsv(requiredCsvValue(columns, "Тип").trim());
+        BakeryKind kind = BakeryKind.fromCsv(requiredCsvValue(columns, "Вид").trim());
         try {
             int weightG = Integer.parseInt(requiredCsvValue(columns, "Вага").trim());
             double cost = Double.parseDouble(requiredCsvValue(columns, "Собiвартiсть").trim().replace(',', '.'));
