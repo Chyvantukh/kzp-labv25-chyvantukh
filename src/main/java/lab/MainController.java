@@ -77,7 +77,7 @@ public final class MainController {
 
         Path file = commandLineArguments.inputPath();
 
-        List<BakeryItem> validProducts = new ArrayList<>();
+        Repository<BakeryItem> productRepository = new InMemoryRepository<>();
         List<String> errorLogs = new ArrayList<>();
         StringBuilder sb = new StringBuilder();
         int lineNumber = 0;
@@ -88,7 +88,7 @@ public final class MainController {
             while ((line = reader.readLine()) != null) {
                 BakeryItem item = parseLine(line, ++lineNumber, errorLogs);
                 if (item != null) {
-                    validProducts.add(item);
+                    productRepository.add(item);
                 }
             }
         } catch (NoSuchFileException e) {
@@ -99,6 +99,7 @@ public final class MainController {
             return EXIT_INPUT_ERROR;
         }
 
+        List<BakeryItem> validProducts = productRepository.all();
         sb.append(String.format(Locale.ROOT, "=== УСПiШНО ЗАВАНТАЖЕНi ТОВАРИ (%d) ===%n",
                 validProducts.size()));
         if (validProducts.isEmpty()) {
