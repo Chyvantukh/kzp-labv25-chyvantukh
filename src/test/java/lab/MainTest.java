@@ -97,10 +97,10 @@ class MainTest {
         Path input = temporaryDirectory.resolve("products.csv");
         Path report = temporaryDirectory.resolve("nested").resolve("report.txt");
         Files.writeString(input, """
-                Хліб;хлiб;100;10,50;12.00
-                Товар;невідомий;200;20;30
-                Печиво;печиво;50;5;15
-                Збитковий;випiчка;20;20;10
+                Хліб,хлiб,100,10.50,12.00,0
+                Товар,невідомий,200,20,30,0
+                Печиво,печиво,50,5,15,0
+                Збитковий,випiчка,20,20,10,0
                 """, StandardCharsets.UTF_8);
 
         ByteArrayOutputStream output = new ByteArrayOutputStream();
@@ -127,7 +127,7 @@ class MainTest {
     void run_shouldReportNoMostExpensiveItemWhenAllRowsAreInvalid() throws Exception {
         Path input = temporaryDirectory.resolve("invalid.csv");
         Path report = temporaryDirectory.resolve("report.txt");
-        Files.writeString(input, "Товар;хлiб;abc;10;20\n", StandardCharsets.UTF_8);
+        Files.writeString(input, "Товар,хлiб,abc,10,20,0\n", StandardCharsets.UTF_8);
 
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         PrintStream originalOut = System.out;
@@ -186,8 +186,8 @@ class MainTest {
         Path input = temporaryDirectory.resolve("products-with-equal-prices.csv");
         Path report = temporaryDirectory.resolve("report.txt");
         Files.writeString(input, """
-                Перший;хлiб;100;10;20
-                Другий;печиво;100;10;20
+                Перший,хлiб,100,10,20,0
+                Другий,печиво,100,10,20,0
                 """, StandardCharsets.UTF_8);
 
         ByteArrayOutputStream output = new ByteArrayOutputStream();
@@ -227,7 +227,7 @@ class MainTest {
     void run_shouldReturnOutputErrorWhenReportParentIsAFile() throws Exception {
         Path input = temporaryDirectory.resolve("products.csv");
         Path outputParent = temporaryDirectory.resolve("not-a-directory");
-        Files.writeString(input, "Товар;хлiб;100;10;20\n", StandardCharsets.UTF_8);
+        Files.writeString(input, "Товар,хлiб,100,10,20,0\n", StandardCharsets.UTF_8);
         Files.writeString(outputParent, "file", StandardCharsets.UTF_8);
 
         ByteArrayOutputStream errorOutput = new ByteArrayOutputStream();
