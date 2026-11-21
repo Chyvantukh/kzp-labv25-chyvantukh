@@ -229,6 +229,17 @@ public final class MainController {
     }
 
     /**
+     * Експортує поточні записи продуктів із репозиторію у CSV-файл.
+     *
+     * @param path шлях до CSV-файлу
+     * @param repository репозиторій коректних продуктів
+     * @throws FileAccessException якщо не вдалося записати файл
+     */
+    public static void exportProducts(Path path, Repository<BakeryItem> repository) {
+        new Csv.Exporter<BakeryItem>(BakeryItem.class).write(path, repository);
+    }
+
+    /**
      * Зберігає агреговані показники звіту.
      *
      * @param totalWeight загальна вага товарів у грамах

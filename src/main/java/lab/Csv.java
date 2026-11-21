@@ -293,6 +293,17 @@ public final class Csv {
         }
 
         /**
+         * Формує CSV з незмінного знімка репозиторію.
+         *
+         * @param repository репозиторій записів
+         * @return документ CSV
+         */
+        public String toCsv(Repository<? extends T> repository) {
+            Objects.requireNonNull(repository, "repository");
+            return toCsv(repository.all());
+        }
+
+        /**
          * Записує дані у файл CSV у кодуванні UTF-8.
          *
          * @param path шлях до файлу призначення
@@ -307,6 +318,18 @@ public final class Csv {
                 throw new FileAccessException(
                         "Не вдалося записати CSV-файл %s".formatted(path), exception);
             }
+        }
+
+        /**
+         * Записує незмінний знімок репозиторію у файл CSV у кодуванні UTF-8.
+         *
+         * @param path шлях до файлу призначення
+         * @param repository репозиторій записів
+         * @throws FileAccessException якщо не вдалося записати файл
+         */
+        public void write(Path path, Repository<? extends T> repository) {
+            Objects.requireNonNull(repository, "repository");
+            write(path, repository.all());
         }
 
         private void appendHeader(StringBuilder csv) {
