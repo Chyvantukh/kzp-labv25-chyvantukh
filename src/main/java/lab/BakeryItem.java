@@ -16,17 +16,17 @@ public abstract sealed class BakeryItem permits Bread, Pastry {
     };
     private static final int LEGACY_FIELD_COUNT = FIELD_NAMES.length - 1;
 
-    @Csv.CsvColumn("Назва")
+    @Csv.CsvColumn(value = "Назва", legacyOrder = 0)
     private final String name;
-    @Csv.CsvColumn("Тип")
+    @Csv.CsvColumn(value = "Вид", legacyOrder = 1)
     private final BakeryKind kind;
-    @Csv.CsvColumn("Вага")
+    @Csv.CsvColumn(value = "Вага", legacyOrder = 2)
     private final int weightG;
-    @Csv.CsvColumn("Собiвартiсть")
+    @Csv.CsvColumn(value = "Собiвартiсть", legacyOrder = 3)
     private final double cost;
-    @Csv.CsvColumn("Цiна")
+    @Csv.CsvColumn(value = "Цiна", legacyOrder = 4)
     private final double price;
-    @Csv.CsvColumn("Час випiкання")
+    @Csv.CsvColumn(value = "Час випiкання", legacyOrder = 5)
     private final double bakingTimeMinutes;
 
     /**
@@ -322,7 +322,7 @@ public abstract sealed class BakeryItem permits Bread, Pastry {
     public static BakeryItem fromCsvColumns(Map<String, String> columns) {
         Objects.requireNonNull(columns, "columns");
         String name = requiredCsvValue(columns, "Назва");
-        BakeryKind kind = BakeryKind.fromCsv(requiredCsvValue(columns, "Тип").trim());
+        BakeryKind kind = BakeryKind.fromCsv(requiredCsvValue(columns, "Вид").trim());
         try {
             int weightG = Integer.parseInt(requiredCsvValue(columns, "Вага").trim());
             double cost = Double.parseDouble(requiredCsvValue(columns, "Собiвартiсть").trim().replace(',', '.'));
