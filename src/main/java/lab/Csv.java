@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,13 @@ public final class Csv {
     @Target(ElementType.FIELD)
     public @interface CsvColumn {
         /**
+         * Повертає позицію стовпця у вхідному CSV без заголовка.
+         *
+         * @return позиція стовпця у legacy-форматі без заголовка, починаючи з нуля
+         */
+        int legacyOrder();
+
+        /**
          * Повертає текст заголовка стовпця.
          *
          * @return заголовок стовпця CSV
@@ -51,7 +59,7 @@ public final class Csv {
         String toCsvValue();
     }
 
-    private record ColumnMetadata(Field field, String header) {
+    private record ColumnMetadata(Field field, String header, int legacyOrder) {
     }
 
     private static List<ColumnMetadata> findColumns(Class<?> recordType) {
@@ -65,6 +73,17 @@ public final class Csv {
                 }
             }
         }
+        long distinctLegacyOrders = fields.stream()
+                .map(field -> field.getAnnotation(CsvColumn.class).legacyOrder())
+                .distinct()
+                .count();
+        if (distinctLegacyOrders != fields.size()) {
+            throw new IllegalArgumentException(
+                    "Тип %s має повторювані позиції legacy CSV-стовпців".formatted(recordType.getName()));
+        }
+
+        fields.sort(Comparator.comparing(Field::getName)
+                .thenComparing(field -> field.getDeclaringClass().getName()));
         List<ColumnMetadata> columns = new ArrayList<>(fields.size());
         for (Field field : fields) {
             try {
@@ -76,7 +95,8 @@ public final class Csv {
                 throw new ReflectionException(
                         "Не вдалося отримати доступ до CSV-поля %s".formatted(field.getName()), exception);
             }
-            columns.add(new ColumnMetadata(field, field.getAnnotation(CsvColumn.class).value()));
+            CsvColumn column = field.getAnnotation(CsvColumn.class);
+            columns.add(new ColumnMetadata(field, column.value(), column.legacyOrder()));
         }
 
         List<String> headers = columns.stream().map(ColumnMetadata::header).toList();
@@ -209,6 +229,8 @@ public final class Csv {
          * @return immutable valid records in document order
          * @throws FileAccessException if the file cannot be read
          * @throws FileFormatException if the CSV quoting is invalid
+         * @implNote Headerless columns are mapped by {@link CsvColumn#legacyOrder()},
+         *     independently of the field-name order used for CSV documents with headers.
          */
         public List<T> readHeaderless(Path path, BiConsumer<Integer, RuntimeException> rowErrorHandler) {
             Objects.requireNonNull(path, "path");
@@ -217,22 +239,25 @@ public final class Csv {
                 String document = Files.readString(path, StandardCharsets.UTF_8);
                 List<List<String>> rows = parseRows(document, delimiter);
                 List<T> records = new ArrayList<>(rows.size());
+                List<ColumnMetadata> legacyColumns = columns.stream()
+                        .sorted(Comparator.comparingInt(ColumnMetadata::legacyOrder))
+                        .toList();
 
                 for (int rowIndex = 0; rowIndex < rows.size(); rowIndex++) {
                     List<String> values = rows.get(rowIndex);
-                    if (values.size() != columns.size()) {
-                        String message = values.size() > columns.size()
+                    if (values.size() != legacyColumns.size()) {
+                        String message = values.size() > legacyColumns.size()
                                 ? "забагато полiв (очiкувалося %d, знайдено %d)"
-                                        .formatted(columns.size(), values.size())
+                                        .formatted(legacyColumns.size(), values.size())
                                 : "очікувалося %d полів, знайдено %d"
-                                        .formatted(columns.size(), values.size());
+                                        .formatted(legacyColumns.size(), values.size());
                         rowErrorHandler.accept(rowIndex, new FileFormatException(message));
                         continue;
                     }
 
                     Map<String, String> row = new LinkedHashMap<>();
-                    for (int columnIndex = 0; columnIndex < columns.size(); columnIndex++) {
-                        row.put(columns.get(columnIndex).header(), values.get(columnIndex));
+                    for (int columnIndex = 0; columnIndex < legacyColumns.size(); columnIndex++) {
+                        row.put(legacyColumns.get(columnIndex).header(), values.get(columnIndex));
                     }
                     try {
                         T record = recordFactory.apply(Map.copyOf(row));
