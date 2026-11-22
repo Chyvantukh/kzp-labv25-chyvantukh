@@ -165,13 +165,13 @@ public final class Csv {
         }
 
         /**
-         * Reads records, sending malformed rows and model-validation failures to a handler.
+         * Зчитує записи, передаючи помилкові рядки та помилки перевірки моделі обробнику.
          *
-         * @param path path to the CSV document
-         * @param rowErrorHandler receives the 1-based data-record number and its error
-         * @return immutable valid records in document order
-         * @throws FileAccessException if the file cannot be read
-         * @throws FileFormatException if the header or CSV quoting is invalid
+         * @param path шлях до CSV-документа
+         * @param rowErrorHandler обробник, який отримує номер запису з даними (нумерація від 1) та помилку
+         * @return незмінний список коректних записів у порядку їх появи в документі
+         * @throws FileAccessException якщо не вдалося прочитати файл
+         * @throws FileFormatException якщо заголовок або лапкування CSV некоректні
          */
         public List<T> read(Path path, BiConsumer<Integer, RuntimeException> rowErrorHandler) {
             Objects.requireNonNull(path, "path");
@@ -222,15 +222,15 @@ public final class Csv {
         }
 
         /**
-         * Reads a document without a header row.
+         * Зчитує CSV-документ без рядка заголовка.
          *
-         * @param path path to the CSV document
-         * @param rowErrorHandler receives the 1-based line number and row error
-         * @return immutable valid records in document order
-         * @throws FileAccessException if the file cannot be read
-         * @throws FileFormatException if the CSV quoting is invalid
-         * @implNote Headerless columns are mapped by {@link CsvColumn#legacyOrder()},
-         *     independently of the field-name order used for CSV documents with headers.
+         * @param path шлях до CSV-документа
+         * @param rowErrorHandler обробник, який отримує індекс рядка, починаючи з нуля, та помилку рядка
+         * @return незмінний список коректних записів у порядку їх появи в документі
+         * @throws FileAccessException якщо не вдалося прочитати файл
+         * @throws FileFormatException якщо лапкування CSV некоректне
+         * @implNote Колонки документа без заголовка зіставляються за {@link CsvColumn#legacyOrder()},
+         *     незалежно від порядку назв полів, що використовується для CSV-документів із заголовком.
          */
         public List<T> readHeaderless(Path path, BiConsumer<Integer, RuntimeException> rowErrorHandler) {
             Objects.requireNonNull(path, "path");
