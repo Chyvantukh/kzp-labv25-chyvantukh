@@ -6,7 +6,7 @@
 - Предметна область: хлібобулочні вироби.
 - Номер варіанта: 25.
 - Операційна система розробки: Windows.
-- Версія проєкту: `5.0.0`.
+- Версія проєкту: `5.0.1`.
 - Репозиторій: [kzp-labv25-chyvantukh](https://github.com/Chyvantukh/kzp-labv25-chyvantukh).
 
 ## 2. Мета роботи
@@ -135,14 +135,14 @@ assertEquals(repository.all(), reimported);
 
 ## 12. Інфраструктура
 
-Проєкт використовує Maven Wrapper, Java 21, JUnit 5, SpotBugs і Maven Shade Plugin. Команда `verify` запускає тести й перевірки Maven; `package` формує виконуваний JAR `target/kzp-labv25-chyvantukh-5.0.0-all.jar`.
+Проєкт використовує Maven Wrapper, Java 21, JUnit 5, SpotBugs і Maven Shade Plugin. Команда `verify` запускає тести й перевірки Maven; `package` формує виконуваний JAR `target/kzp-labv25-chyvantukh-5.0.1-all.jar`.
 
 Windows PowerShell:
 
 ```powershell
 .\mvnw.cmd clean verify
 .\mvnw.cmd package
-java -jar target/kzp-labv25-chyvantukh-5.0.0-all.jar --input data/input.csv --output data/report.txt
+java -jar target/kzp-labv25-chyvantukh-5.0.1-all.jar --input data/input.csv --output data/report.txt
 ```
 
 Ubuntu та macOS:
@@ -150,7 +150,7 @@ Ubuntu та macOS:
 ```bash
 ./mvnw clean verify
 ./mvnw package
-java -jar target/kzp-labv25-chyvantukh-5.0.0-all.jar --input data/input.csv --output data/report.txt
+java -jar target/kzp-labv25-chyvantukh-5.0.1-all.jar --input data/input.csv --output data/report.txt
 ```
 
 GitHub Actions перевіряє Java 21 на Ubuntu, Windows та macOS, запускає виконуваний JAR з `--version` і завантажує його як артефакт. [CI-запуск для PR #99](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/actions/runs/45030029501).

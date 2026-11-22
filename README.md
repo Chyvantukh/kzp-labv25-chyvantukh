@@ -44,7 +44,7 @@ Windows PowerShell:
 ```powershell
 .\mvnw.cmd clean verify
 .\mvnw.cmd package
-java -jar target/kzp-labv25-chyvantukh-5.0.0-all.jar --input data/input.csv --output data/report.txt
+java -jar target/kzp-labv25-chyvantukh-5.0.1-all.jar --input data/input.csv --output data/report.txt
 ```
 
 macOS та Ubuntu:
@@ -52,7 +52,7 @@ macOS та Ubuntu:
 ```bash
 ./mvnw clean verify
 ./mvnw package
-java -jar target/kzp-labv25-chyvantukh-5.0.0-all.jar --input data/input.csv --output data/report.txt
+java -jar target/kzp-labv25-chyvantukh-5.0.1-all.jar --input data/input.csv --output data/report.txt
 ```
 
 CI виконує `clean verify` на Java 21 для Ubuntu, Windows і macOS, перевіряє запуск виконуваного JAR з `--version` та публікує JAR як артефакт. [GitHub Actions для PR #99](https://github.com/Chyvantukh/kzp-labv25-chyvantukh/actions/runs/45030029501).
